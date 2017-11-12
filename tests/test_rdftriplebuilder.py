@@ -12,7 +12,7 @@ from pyneql.utils import (
     NameSpaceException
 )
 
-from pyneql.querybuilder import (
+from pyneql.rdftriplebuilder import (
     RDFTripletBuilder
 )
 
