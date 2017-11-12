@@ -29,13 +29,8 @@ RE_NAMESPACE_CHECKER = re.compile(
     '^\s*(?P<abbr>\w+)\s*:\s*<(?P<ns>http://[^>\s]+)>[\s\.]*$')
 
 
-class RDFTripletBuilder:
+class RDFTriple:
     """Creates an RDF triple that can be used for querying in a select statement."""
-
-    prefixes = []
-    subject = u"?s"
-    predicate = u"?p"
-    object = u"?o"
 
     def __init__(self,
                  subject=u"?s",
@@ -44,7 +39,11 @@ class RDFTripletBuilder:
                  prefixes=None):
 
         self.prefixes = []
+        self.subject = u"?s"
+        self.predicate = u"?p"
+        self.object = u"?o"
         prefixes = prefixes or []
+
         logging.debug("Initialisation of triplet:\n(%s %s %s)" %
                       (self.subject, self.predicate, self.object))
 
