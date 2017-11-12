@@ -1,6 +1,7 @@
-PyNeQL: a module fore Named Entity Query on SPARQL endpoints
+PyNeQL: a module for searching Named Entity on SPARQL endpoints
 ===========================================================
 
+*In development*
 
 Linked Data is the global database of the World Wide Web.
 One can query those linked databases by sending SPARQL queries to different endpoints.

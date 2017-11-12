@@ -13,7 +13,7 @@ from pyneql.utils import (
 )
 
 from pyneql.rdftriplebuilder import (
-    RDFTripletBuilder
+    RDFTriple
 )
 
 from pyneql.vocabulary import NameSpace, add_namespace
@@ -23,9 +23,9 @@ from pyneql.vocabulary import NameSpace, add_namespace
 #---------------------------------------
 
 def test_rdftripletbuilder_base_case():
-    """RDFTripletBuilder - Base case, no issues: Should pass """
+    """RDFTriple - Base case, no issues: Should pass """
 
-    rdf = RDFTripletBuilder(
+    rdf = RDFTriple(
         subject=u"Test",
         predicate=u"<http://purl.org/dc/elements/1.1/title>"
     )
@@ -37,9 +37,9 @@ def test_rdftripletbuilder_base_case():
 
 
 def test_rdftripletbuilder_check_prefix():
-    """RDFTripletBuilder - Prefix checking: Should pass """
+    """RDFTriple - Prefix checking: Should pass """
 
-    rdf1 = RDFTripletBuilder(
+    rdf1 = RDFTriple(
         subject=u"foaf:name",
         predicate=u"<http://purl.org/dc/elements/1.1/title>"
     )
@@ -54,9 +54,9 @@ def test_rdftripletbuilder_check_prefix():
 
 
 def test_rdftripletbuilder_prefix_normalization():
-    """RDFTripletBuilder - Prefix normalisation: Should pass """
+    """RDFTriple - Prefix normalisation: Should pass """
 
-    rdf2 = RDFTripletBuilder(
+    rdf2 = RDFTriple(
         prefixes=[
             " t3st_1234  : <http://foo.org/bar/1.1/buz.owl#>  .",
             "xsd: <http://www.w3.org/2001/XMLSchema#>"])
@@ -74,18 +74,18 @@ def test_rdftripletbuilder_prefix_normalization():
 
 @raises(NameSpaceException)
 def test_rdftripletbuilder_prefix_inconsistencies1():
-        """RDFTripletBuilder - Inconsistency between
+        """RDFTriple - Inconsistency between
         the vocabulary and a given namespace: Should fail """
 
         # "t3st_1234" is not in the vocabulary but "http://www.w3.org/2001/XMLSchema#" is.
-        rdf = RDFTripletBuilder(prefixes=["t3st_1234: <http://www.w3.org/2001/XMLSchema#>"])
+        rdf = RDFTriple(prefixes=["t3st_1234: <http://www.w3.org/2001/XMLSchema#>"])
 
 
 @raises(NameSpaceException)
 def test_rdftripletbuilder_prefix_inconsistencies2():
-        """RDFTripletBuilder - Inconsistency between
+        """RDFTriple - Inconsistency between
         the vocabulary and a given namespace (the other way around): Should fail """
 
-        rdf = RDFTripletBuilder(prefixes=["xsd: <http://foo.org/bar/1.1/buz.owl#>"])
+        rdf = RDFTriple(prefixes=["xsd: <http://foo.org/bar/1.1/buz.owl#>"])
 
 
