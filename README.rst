@@ -1,4 +1,4 @@
-NeQL: a module fore Named Entity Query on SPARQL endpoints
+PyNeQL: a module fore Named Entity Query on SPARQL endpoints
 ===========================================================
 
 
@@ -8,7 +8,7 @@ One can query those linked databases by sending SPARQL queries to different endp
 SPARQL vocabularies are huge and it is sometimes tedious to find how to ask for simple
 things as Named Entities.
 
-This module provides a very simple way to query a named entity by its name, and retrieve
+This module aims to provide a very simple way to query a named entity by its name, and retrieve
 a maximum of information from different SPARQL endpoints.
 
 
