@@ -6,10 +6,9 @@ Author: Valérie Hanoka
 
 """
 
-import logging
 import logging.config
 
-from pyneql.rdftriple import RDFTriple
+from rdftriple import RDFTriple
 from utils import (
     QueryException,
 )
@@ -26,6 +25,8 @@ from namespace import (
     add_namespace
 )
 
+import requests
+
 logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 
@@ -37,20 +38,12 @@ class GenericSPARQLQuery():
     """A generic SPARQL 'select' query builder.
      It is used to build queries iteratively."""
 
-    template_query = """
-    {prefix}
-    SELECT {result_arguments}
-    {from_dataset} 
-    WHERE {
-        {triples}   
-    }
-    {limit}
-    """
+    template_query = u'%(prefix)s SELECT %(result_arguments)s WHERE { %(triples)s } %(limit)s'
 
     def __init__(self, **kwargs):
-        self.prefixes = []  # a list of vocabulary.prefixes
+        self.prefixes = set([])  # a set of vocabulary.prefixes
         self.result_arguments = ["*"]  # a list of string representing variables. Ex: "?name"
-        self.dataset = []  # Whatever... TODO
+        self.endpoints = set([])  # SPARQL endpoints where the query should be sent
         self.triples = []  # a list of RDFTriples
         self.limit = ""  # Whatever... TODO
         self.query = self.template_query
@@ -66,26 +59,28 @@ class GenericSPARQLQuery():
     def add_query_triple(self, **triple):
         """ Add an RDF triple to the body of the select query."""
         index = len(self.triples)
-        self.triples.append(
-            RDFTriple(
-                subject=triple.get("subject", "?s_%i" % index),
-                predicate=triple.get("predicate", "?p_%i" % index),
-                object=triple.get("object", "?o_%i" % index),
-                prefixes=triple.get("prefixes", None))
-        )
+        new_triple = RDFTriple(
+            subject=triple.get("subject", u"?s_%i" % index),
+            predicate=triple.get("predicate", u"?p_%i" % index),
+            object=triple.get("object", u"?o_%i" % index),
+            prefixes=triple.get("prefixes", None))
+
+        self.triples.append(new_triple)
+        for p in new_triple.prefixes:
+            self.prefixes.add(p)
 
     def query_from(self, endpoints):
         """ Add an endpoint to the current query. This query will be send to
         evey listed endpoint. The result will be aggregated.
         For list of supported endpoints, see enum.Endpoints."""
         if type(endpoints) == Endpoint:
-            self.dataset.append(endpoints)
+            self.endpoints.append(endpoints)
         else:
             for endpoint in endpoints:
                 if type(endpoint) == Endpoint:
-                    self.dataset.append(endpoint)
+                    self.endpoints.append(endpoint)
                 else:
-                    raise QueryException("Endpoint %s not supported yet." % endpoint)
+                    raise QueryException(u"Endpoint %s not supported yet." % endpoint)
 
     def add_prefix(self, prefix):
         """ Convert a string 'abbr: <url>' into a NameSpace, and
@@ -93,11 +88,11 @@ class GenericSPARQLQuery():
         abbr, url = decompose_prefix(prefix)
         match = get_consistent_namespace(abbr, url)
         if match:
-            self.prefixes.append(match)
+            self.prefixes.add(match)
         else:
             # Unknown namespace, adding it to the vocabulary
             new_namespace = add_namespace(abbr, url)
-            self.prefixes.append(new_namespace)
+            self.prefixes.add(new_namespace)
         pass
 
     def add_prefixes(self, prefixes):
@@ -113,11 +108,19 @@ class GenericSPARQLQuery():
     def set_limit(self, limit):
         """ Limits the number of results the query returns."""
         if type(limit) != int:
-            raise QueryException(" Bad limit type. Must be an int, got %i instead." % type(limit))
-        self.limit = limit
+            raise QueryException(u" Bad limit type. Must be an int, got %i instead." % type(limit))
+        elif limit < 1:
+            raise QueryException(u" Bad limit value. Must be greater than 0.")
+
+        self.limit = u'LIMIT %i' %limit
+
+    def add_endpoint(self, endpoint):
+        if type(endpoint) == Endpoint:
+            self.endpoints.add(endpoint)
+        else:
+            raise QueryException(u" Bad endpoint type. Must be an Endpoint, got %i instead." % type(endpoint))
 
     #-------  Query Validation & preparation -------#
-
     def _validate_arguments(self):
         """Check that the query arguments can be used in a valid SPARQL query"""
 
@@ -125,34 +128,54 @@ class GenericSPARQLQuery():
         # of rdf triples.
         if not self.triples:
             raise QueryException(
-                "The query can't be instantiated without rdf triples in the WHERE clause")
+                u"The query can't be instantiated without rdf triples in the WHERE clause")
 
         # Check prefixes, which is a list of namespace.NameSpace
         if not all(isinstance(p, NameSpace) for p in self.prefixes):
             raise QueryException(
-                "At least one of the prefixes given are NOT of type %s" % NameSpace.__name__)
+                u"At least one of the prefixes given are NOT of type %s" % NameSpace.__name__)
 
+        # Check that there is at least one endpoint specified. If not, adding the default endpoint.
+        if len(self.endpoints) == 0:
+            self.endpoints.add(Endpoint.DEFAULT)
 
-    def querify(self):
-        """ Build a well formed SPARQL query with the given arguments.
-        Raise an error if it can't be constructed."""
+    def _querify(self):
+        """ Build a well formed SPARQL query with the given arguments. """
 
         self._validate_arguments()
-        #self.template_query = self.template_query %
 
+        prefix_strs = (u'PREFIX %s: <%s>' % (prefix.name, prefix.value) for prefix in self.prefixes)
+
+        arguments = {
+            u'prefix': u' '.join(prefix_strs),
+            u'result_arguments': u'*',  # TODO
+            u'triples': u' '.join((str(t) for t in self.triples)),
+            u'limit': self.limit,
+        }
+
+        self.query = self.template_query % arguments
 
     #-------  Query launch  -------#
     def commit(self):
         """TODO"""
-        self._querify
+        self._querify()
+        self._send_requests()
 
+    def _send_requests(self):
+        for endpoint in self.endpoints:
 
+            headers = {
+                'Accept': 'application/json'
+            }
+            params = {
+                "query": self.query,
+                # "default-graph-uri": endpoint.value  # TODO stop at .xyz
+            }
 
+            response = requests.get(endpoint.value, params=params, headers=headers)
 
-
-    def __str__(self):
-        return self.select_query
-
+            import ipdb;
+            ipdb.set_trace()
 
 
 class PersonQuery(GenericSPARQLQuery):
@@ -174,8 +197,12 @@ class PersonQuery(GenericSPARQLQuery):
 class PeriodQuery(GenericSPARQLQuery):
     """
     TODO: Time and period
-    """
+    SELECT * WHERE
+    { ?x
+    rdfs:label
+    "Renaissance" @ fr; ?y ?z.}
     pass
+    """
 
 
 

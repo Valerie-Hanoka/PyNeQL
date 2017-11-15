@@ -126,11 +126,11 @@ def decompose_prefix(prefix):
     is_well_formed = RE_NAMESPACE_CHECKER.match(prefix)
 
     if is_well_formed:
-        abbr = is_well_formed.group("abbr")
-        url = is_well_formed.group("uri")
+        abbr = is_well_formed.group(u"abbr")
+        url = is_well_formed.group(u"uri")
         return abbr, url
     else:
-        raise NameSpaceException("The prefix %s is not well formed." % prefix)
+        raise NameSpaceException(u"The prefix %s is not well formed." % prefix)
 
 
 def get_consistent_namespace(abbreviation, namespace):
@@ -159,13 +159,13 @@ def get_consistent_namespace(abbreviation, namespace):
         return abbr_ns  # It's a match ! We return the corresponding voc.NameSpace
 
     raise NameSpaceException(
-        "In the stadard vocabulary, %s does not correspond to %s."
-        "This could lead to inconsistencies."
-        "Check your prefixes again or contact the author." % (abbreviation, namespace))
+        u"In the stadard vocabulary, %s does not correspond to %s."
+        u"This could lead to inconsistencies."
+        u"Check your prefixes again or contact the author." % (abbreviation, namespace))
 
 
 def add_namespace(prefix, url):
     """ Add an element to NameSpace enumeration, and returns it."""
     extend_enum(NameSpace, prefix, url)
-    logging.info("NameSpace %s: %s added to the list of name spaces." % (prefix, url))
+    logging.info(u"NameSpace %s: %s added to the list of name spaces." % (prefix, url))
     return NameSpace(url)

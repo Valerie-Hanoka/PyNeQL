@@ -35,7 +35,6 @@ def test_rdftripletbuilder_base_case():
     assert rdf.prefixes == [NameSpace.dc]
 
 
-
 def test_rdftripletbuilder_check_prefix():
     """RDFTriple - Prefix checking: Should pass """
 

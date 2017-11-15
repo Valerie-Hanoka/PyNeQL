@@ -45,10 +45,10 @@ class RDFTriple:
         self.object = u"?o_"
         prefixes = prefixes or []
 
-        logging.debug("Initialisation of triplet:\n(%s %s %s)" %
+        logging.debug(u"Initialisation of triplet:\n(%s %s %s)" %
                       (self.subject, self.predicate, self.object))
 
-        logging.debug("Prefixes: %s" % self.prefixes)
+        logging.debug(u"Prefixes: %s" % self.prefixes)
         self.add_prefixes(prefixes)
 
         # If variable is not instantiated, we use its name as a variable name
@@ -59,8 +59,10 @@ class RDFTriple:
         if object:
             self.object = self._extract_prefix_from_rdf_element(object)
 
-        logging.debug("Prefixes: %s" % self.prefixes)
+        logging.debug(u"Prefixes: %s" % self.prefixes)
 
+    def __str__(self):
+        return u"%s %s %s ." % (self.subject, self.predicate, self.object)
 
     def _extract_prefix_from_rdf_element(self, element):
         """
@@ -101,7 +103,7 @@ class RDFTriple:
                 short_prefix = NameSpace(pref)
                 if short_prefix:
                     self.add_prefix(short_prefix)
-                    element = '%s:%s' % (short_prefix.name, ns_element[limit:])
+                    element = u'%s:%s' % (short_prefix.name, ns_element[limit:])
 
         # Case 2 - The element contains a prefix
         elif u':' in element:
@@ -111,8 +113,8 @@ class RDFTriple:
                 self.add_prefix(known_pref)
             else:
                 raise  NameSpaceException(
-                    "In the standard vocabulary, %s can't be found. "
-                    "Without a prior declaration in the prefixes, it can't be used."
+                    u"In the standard vocabulary, %s can't be found. "
+                    u"Without a prior declaration in the prefixes, it can't be used."
                     % known_pref)
 
         # Case 3 - Other cases
@@ -156,8 +158,8 @@ class RDFTriple:
 
         else:
             raise NameSpaceException(
-                "Prefix type is not allowed: %s , of type %s. "
-                "Should ba a string or a vocabulary.NameSpace " % (prefix, type(prefix)))
+                u"Prefix type is not allowed: %s , of type %s. "
+                u"Should ba a string or a vocabulary.NameSpace " % (prefix, type(prefix)))
 
 
     def get_variables(self):

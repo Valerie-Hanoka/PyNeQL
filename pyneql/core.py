@@ -9,14 +9,14 @@ import logging
 from enum import LanguagesIso6391 as Lang
 from querybuilder import GenericSPARQLQuery as Query
 
-name = "Simone de Beauvoir"
+name = u"Simone de Beauvoir"
 language = Lang.French
 
 q = Query()
 
-triple = {'object': u'"Simone de Beauvoir"@fr'}
-q.add_query_triple(name, language)
-
+t = {u'predicate': u'rdfs:label', u'object': u'"Simone de Beauvoir"@fr'}
+q.add_query_triple(**t)
+q.commit()
 
 # query.set_endpoints( endpoints_list )
 # query.add_filters( filters_list )
