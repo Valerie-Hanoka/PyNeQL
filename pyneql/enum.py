@@ -9,9 +9,26 @@ Author: Valérie Hanoka
 from aenum import Enum
 
 
+
+class Endpoint(Enum):
+    """ List of the supported endpoints """
+    DEFAULT = u'http://fr.dbpedia.org/sparql'
+
+    # Generic information
+    dbpedia = u'http://fr.dbpedia.org/sparql'
+    # wikidata = u'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query={SPARQL}'
+
+    # Bibliographic information
+    bnf = u'http://data.bnf.fr/sparql/'
+    # openBNB = u'http://bnb.data.bl.uk/sparql'  # The Linked Open British National Bibliography
+
+
+
 class LanguagesIso6391(Enum):
     """ This enumeartion lists languages with their ISO 639-1:2002 codes."""
+
     DEFAULT = 'fr'
+
     Abkhazian = 'ab'
     Afar = 'aa'
     Afrikaans = 'af'

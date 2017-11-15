@@ -1,15 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-vocabulary.py is part of the project PyNeQL
+namespace.py is part of the project PyNeQL
 Author: Valérie Hanoka
 
 """
 from utils import (
-    NameSpaceException,
+    NameSpaceException
 )
 
+import logging
 from aenum import Enum, extend_enum
+import re
+
+logging.getLogger(__name__).addHandler(logging.NullHandler())
+
+RE_NAMESPACE_CHECKER = re.compile(
+    '^\s*(?P<abbr>\w+)\s*:\s*<(?P<uri>http://[^>\s]+)>[\s\.]*$')
 
 
 class NameSpace(Enum):
@@ -108,13 +115,33 @@ class NameSpace(Enum):
     foaf = u'http://xmlns.com/foaf/0.1/'
 
 
-def _get_consistent_namespace(abbreviation, namespace):
+def decompose_prefix(prefix):
+    """Decomposes a prefix in its parts.
+    E.g.:
+         gn: <http://www.geonames.org/ontology#>
+         will be decomposed in:
+           - the abbreviation 'gn'
+           - the url 'http://www.geonames.org/ontology#'
+    """
+    is_well_formed = RE_NAMESPACE_CHECKER.match(prefix)
+
+    if is_well_formed:
+        abbr = is_well_formed.group("abbr")
+        url = is_well_formed.group("uri")
+        return abbr, url
+    else:
+        raise NameSpaceException("The prefix %s is not well formed." % prefix)
+
+
+def get_consistent_namespace(abbreviation, namespace):
     """ Given an abbreviation (e.g.: "foaf") and a namespace
     (e.g.: "http://xmlns.com/foaf/0.1/") we check that the
     mapping abbreviation: namespace is in the vocabulary.
     This function raises a NameSpaceException if (at least)
     one of the element is in the vocabulary but the other does
-    not corresponds to what is given in the vocabulary."""
+    not corresponds to what is given in the vocabulary.
+    Returns the corresponding NameSpace if it exists or None.
+    """
 
     # Getting the voc.NameSpace corresponding to the namespace
     try:
@@ -126,7 +153,7 @@ def _get_consistent_namespace(abbreviation, namespace):
     ns_abbr = NameSpace.__members__.get(abbreviation)
 
     if not (ns_abbr or abbr_ns):
-        return False  # Neither element can be found in the vocabulary
+        return None  # Neither element can be found in the vocabulary
 
     if ns_abbr and abbr_ns and (abbr_ns == ns_abbr):
         return abbr_ns  # It's a match ! We return the corresponding voc.NameSpace
@@ -138,4 +165,7 @@ def _get_consistent_namespace(abbreviation, namespace):
 
 
 def add_namespace(prefix, url):
+    """ Add an element to NameSpace enumeration, and returns it."""
     extend_enum(NameSpace, prefix, url)
+    logging.info("NameSpace %s: %s added to the list of name spaces." % (prefix, url))
+    return NameSpace(url)

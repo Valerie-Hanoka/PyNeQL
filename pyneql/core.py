@@ -12,8 +12,10 @@ from querybuilder import GenericSPARQLQuery as Query
 name = "Simone de Beauvoir"
 language = Lang.French
 
-query = Query()
-query.what(name, language)
+q = Query()
+
+triple = {'object': u'"Simone de Beauvoir"@fr'}
+q.add_query_triple(name, language)
 
 
 # query.set_endpoints( endpoints_list )
@@ -21,5 +23,8 @@ query.what(name, language)
 # query.limit( limit_int )
 # query.result_language( lang_list)
 # query.result_types( type_list )
+
+#q.query(name, language)
+
 
 import ipdb; ipdb.set_trace()

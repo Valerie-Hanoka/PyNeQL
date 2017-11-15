@@ -12,11 +12,11 @@ from pyneql.utils import (
     NameSpaceException
 )
 
-from pyneql.rdftriplebuilder import (
+from pyneql.rdftriple import (
     RDFTriple
 )
 
-from pyneql.vocabulary import NameSpace, add_namespace
+from pyneql.namespace import NameSpace, add_namespace
 
 #---------------------------------------
 #          RDF Triples

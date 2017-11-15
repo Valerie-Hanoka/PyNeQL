@@ -14,7 +14,12 @@ from utils import (
     normalize_str
 )
 
-import vocabulary as voc
+from namespace import (
+    NameSpace,
+    decompose_prefix,
+    get_consistent_namespace,
+    add_namespace
+)
 import re
 
 
@@ -23,11 +28,7 @@ logging.getLogger(__name__).addHandler(logging.NullHandler())
 #---------------------------------
 #        RDF formalism
 #---------------------------------
-
 RE_PREFIX_SEPARATOR = re.compile('.*/|#')
-RE_NAMESPACE_CHECKER = re.compile(
-    '^\s*(?P<abbr>\w+)\s*:\s*<(?P<ns>http://[^>\s]+)>[\s\.]*$')
-
 
 class RDFTriple:
     """Creates an RDF triple that can be used for querying in a select statement."""
@@ -39,9 +40,9 @@ class RDFTriple:
                  prefixes=None):
 
         self.prefixes = []
-        self.subject = u"?s"
-        self.predicate = u"?p"
-        self.object = u"?o"
+        self.subject = u"?s_"
+        self.predicate = u"?p_"
+        self.object = u"?o_"
         prefixes = prefixes or []
 
         logging.debug("Initialisation of triplet:\n(%s %s %s)" %
@@ -105,7 +106,7 @@ class RDFTriple:
         # Case 2 - The element contains a prefix
         elif u':' in element:
             pref, elem = element.split(u':')
-            known_pref = voc.NameSpace.__members__.get(pref)
+            known_pref = NameSpace.__members__.get(pref)
             if known_pref:
                 self.add_prefix(known_pref)
             else:
@@ -131,32 +132,27 @@ class RDFTriple:
             return
 
         # The prefix is already a vocabulary.NameSpace
-        if type(prefix) == voc.NameSpace:
+        if type(prefix) == NameSpace:
             if prefix not in self.prefixes:
                 self.prefixes.append(prefix)
 
         elif type(prefix) == str:
 
             # If the prefix is not normalised yet, we normalise it
-            is_well_formed = RE_NAMESPACE_CHECKER.match(prefix)
-            if is_well_formed:
-                abbr = is_well_formed.group("abbr")
-                ns = is_well_formed.group("ns")
+            abbr, ns = decompose_prefix(prefix)
 
-                # Check if the namespace is present in the vocabulary
-                #  and consistent.
-                consistent_namespace = voc._get_consistent_namespace(abbr, ns)
-                if consistent_namespace:
-                    if consistent_namespace not in self.prefixes:
-                        self.prefixes.append(consistent_namespace)
+            # Check if the namespace is present in the vocabulary
+            #  and consistent.
+            consistent_namespace = get_consistent_namespace(abbr, ns)
+            if consistent_namespace:
+                if consistent_namespace not in self.prefixes:
+                    self.prefixes.append(consistent_namespace)
 
                 else:
                     # Unknown namespace, adding it to the vocabulary
-                    voc.add_namespace(abbr, ns)
-                    self.prefixes.append(voc.NameSpace(ns))
+                    new_namespace = add_namespace(abbr, ns)
+                    self.prefixes.append(new_namespace)
 
-            else:
-                raise NameSpaceException("Prefix %s is not well formed." % prefix)
 
         else:
             raise NameSpaceException(
