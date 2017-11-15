@@ -98,7 +98,7 @@ class RDFTriple:
                 # If the namespace is listed in the vocabulary
                 # then the element is shortened using the namespace prefix
                 # and the prefix is added to the list of prefixes.
-                short_prefix = voc.NameSpace(pref)
+                short_prefix = NameSpace(pref)
                 if short_prefix:
                     self.add_prefix(short_prefix)
                     element = '%s:%s' % (short_prefix.name, ns_element[limit:])
