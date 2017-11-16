@@ -5,22 +5,29 @@ namespace.py is part of the project PyNeQL
 Author: Valérie Hanoka
 
 """
+
+import logging
+from loggingsetup import (
+    setup_logging,
+    highlight_str
+)
+
 from utils import (
     NameSpaceException
 )
 
-import logging
 from aenum import Enum, extend_enum
 import re
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
 
 RE_NAMESPACE_CHECKER = re.compile(
     '^\s*(?P<abbr>\w+)\s*:\s*<(?P<uri>http://[^>\s]+)>[\s\.]*$')
 
 
 class NameSpace(Enum):
-    """Common SPARQL prefixes."""
+    """
+    Common SPARQL prefixes.
+    """
 
     dbpedia_cs = u'http://cs.dbpedia.org/resource/'
     bnf_onto = u'http://data.bnf.fr/ontology/bnf-onto/'
@@ -116,12 +123,15 @@ class NameSpace(Enum):
 
 
 def decompose_prefix(prefix):
-    """Decomposes a prefix in its parts.
+    """
+    Decomposes a prefix in its parts.
     E.g.:
          gn: <http://www.geonames.org/ontology#>
          will be decomposed in:
            - the abbreviation 'gn'
            - the url 'http://www.geonames.org/ontology#'
+    :param prefix: A well-formed SPARQL prefix
+    :return: A parsed SPARQL prefix: (abbreviation, url)
     """
     is_well_formed = RE_NAMESPACE_CHECKER.match(prefix)
 
@@ -134,13 +144,18 @@ def decompose_prefix(prefix):
 
 
 def get_consistent_namespace(abbreviation, namespace):
-    """ Given an abbreviation (e.g.: "foaf") and a namespace
+    """
+    Given an abbreviation (e.g.: "foaf") and a namespace
     (e.g.: "http://xmlns.com/foaf/0.1/") we check that the
     mapping abbreviation: namespace is in the vocabulary.
     This function raises a NameSpaceException if (at least)
     one of the element is in the vocabulary but the other does
     not corresponds to what is given in the vocabulary.
     Returns the corresponding NameSpace if it exists or None.
+
+    :param abbreviation: A SPARQL PREFIX abbreviation (e.g.: "foaf")
+    :param namespace: A SPARQL PREFIX namespace (e.g.: "http://xmlns.com/foaf/0.1/")
+    :return: The corresponding NameSpace if it exists or None
     """
 
     # Getting the voc.NameSpace corresponding to the namespace
@@ -165,7 +180,13 @@ def get_consistent_namespace(abbreviation, namespace):
 
 
 def add_namespace(prefix, url):
-    """ Add an element to NameSpace enumeration, and returns it."""
+    """
+    Add an element to NameSpace enumeration, and returns it.
+    :param prefix: The name of the NameSpace to be added
+    :param url: The url of the NameSpace to be added
+    :return: The added NameSpace element
+    """
+    setup_logging()
     extend_enum(NameSpace, prefix, url)
     logging.info(u"NameSpace %s: %s added to the list of name spaces." % (prefix, url))
     return NameSpace(url)

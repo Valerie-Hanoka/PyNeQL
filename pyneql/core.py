@@ -5,26 +5,40 @@ core.py is part of the project PyNeQL
 Author: Valérie Hanoka
 
 """
-import logging
-from enum import LanguagesIso6391 as Lang
-from querybuilder import GenericSPARQLQuery as Query
 
-name = u"Simone de Beauvoir"
-language = Lang.French
+from enum import Endpoint as ep
+from querybuilder import GenericSPARQLQuery
+from rdftriple import RDFTriple
+from namespace import NameSpace
 
-q = Query()
 
-t = {u'predicate': u'rdfs:label', u'object': u'"Simone de Beauvoir"@fr'}
-q.add_query_triple(**t)
-q.commit()
+query = GenericSPARQLQuery()
 
-# query.set_endpoints( endpoints_list )
-# query.add_filters( filters_list )
-# query.limit( limit_int )
-# query.result_language( lang_list)
-# query.result_types( type_list )
+simone = RDFTriple(
+    subject=u'?person',
+    object=u'"Simone de Beauvoir"@fr',
+    predicate=u'rdfs:label')
+
+birth = RDFTriple(
+    subject=u'?person',
+    object=u'?birthdate',  # 1908-01-09
+    predicate=u'dbpedia_owl:birthDate',
+    prefixes=[NameSpace.dbpedia_owl],
+)
+gender = RDFTriple(
+    subject=u'?person',
+    object=u'?gender',
+    predicate=u'<http://xmlns.com/foaf/0.1/gender>',
+)
+
+query.add_query_triples([simone, birth, gender])
+query.set_limit(3)
+query.commit()
+
+import ipdb; ipdb.set_trace()
+
+
 
 #q.query(name, language)
 
 
-import ipdb; ipdb.set_trace()

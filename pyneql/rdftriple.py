@@ -7,7 +7,10 @@ Author: Valérie Hanoka
 """
 
 import logging
-import logging.config
+from loggingsetup import (
+    setup_logging,
+    highlight_str
+)
 
 from utils import (
     NameSpaceException,
@@ -23,32 +26,33 @@ from namespace import (
 import re
 
 
-logging.getLogger(__name__).addHandler(logging.NullHandler())
-
 #---------------------------------
 #        RDF formalism
 #---------------------------------
 RE_PREFIX_SEPARATOR = re.compile('.*/|#')
 
-class RDFTriple:
-    """Creates an RDF triple that can be used for querying in a select statement."""
+class RDFTriple(object):
+    """
+    A generic RDF triple that can be used for querying in a select statement.
+    """
+    setup_logging()
+
+    class_counter = 1
 
     def __init__(self,
-                 subject=u"?s",
-                 predicate=u"?p",
-                 object=u"?o",
+                 subject=u'',
+                 predicate=u'',
+                 object=u'',
                  prefixes=None):
 
+        self.id = RDFTriple.class_counter
+        RDFTriple.class_counter += 1
+
         self.prefixes = []
-        self.subject = u"?s_"
-        self.predicate = u"?p_"
-        self.object = u"?o_"
+        self.subject = u"?s_%i" % RDFTriple.class_counter
+        self.predicate = u"?p_%i" % RDFTriple.class_counter
+        self.object = u"?o_%i" % RDFTriple.class_counter
         prefixes = prefixes or []
-
-        logging.debug(u"Initialisation of triplet:\n(%s %s %s)" %
-                      (self.subject, self.predicate, self.object))
-
-        logging.debug(u"Prefixes: %s" % self.prefixes)
         self.add_prefixes(prefixes)
 
         # If variable is not instantiated, we use its name as a variable name
@@ -59,16 +63,16 @@ class RDFTriple:
         if object:
             self.object = self._extract_prefix_from_rdf_element(object)
 
-        logging.debug(u"Prefixes: %s" % self.prefixes)
+        logging.info("Created triple %s" % highlight_str(self.__str__(), highlight_type='triple'))
 
     def __str__(self):
+        """
+        :return: String version of the triple (without prefixes information)
+        """
         return u"%s %s %s ." % (self.subject, self.predicate, self.object)
 
     def _extract_prefix_from_rdf_element(self, element):
-        """
-        Element is one part of an rdf triple.
-
-        This element can be of the form:
+        """ The element can be of the form:
             1- '<http://purl.org/dc/elements/1.1/title>'
             2- 'dc:title'
             3- '?anything'
@@ -86,7 +90,8 @@ class RDFTriple:
 
         Case 3: Just normalize the string (spaces, unicode) and return it.
 
-        Return: a normalized string of an rdf triple element
+        :param element: One of the 3 element of an RDF triple (subject, object or predicate).
+        :return: Normalized string of an rdf triple element
         """
 
         # Case 1 - The element contains a namespace.
@@ -112,12 +117,13 @@ class RDFTriple:
             if known_pref:
                 self.add_prefix(known_pref)
             else:
-                raise  NameSpaceException(
+                raise NameSpaceException(
                     u"In the standard vocabulary, %s can't be found. "
                     u"Without a prior declaration in the prefixes, it can't be used."
                     % known_pref)
 
-        # Case 3 - Other cases
+        # Other cases
+        print element
         return normalize_str(element)
 
 
@@ -163,7 +169,8 @@ class RDFTriple:
 
 
     def get_variables(self):
-        """ Return the element of the RDF triple which are variables."""
-        return [e
-                for e in (self.subject, self.object, self.predicate)
-                if e[0] == u'?']
+        """
+        Given a well-formed SPARQL query, returns its variables.
+        :return: the elements of the RDF triple which are variables.
+        """
+        return [e for e in (self.subject, self.object, self.predicate) if e[0] == u'?']

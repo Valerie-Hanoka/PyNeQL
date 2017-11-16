@@ -12,16 +12,19 @@ from aenum import Enum
 
 class Endpoint(Enum):
     """ List of the supported endpoints """
-    DEFAULT = u'http://fr.dbpedia.org/sparql'
+    DEFAULT = u'http://dbpedia.org/sparql'
 
     # Generic information
-    dbpedia = u'http://fr.dbpedia.org/sparql'
-    # wikidata = u'https://query.wikidata.org/bigdata/namespace/wdq/sparql?query={SPARQL}'
+    dbpedia = u'http://dbpedia.org/sparql'
+    dbpedia_fr = u'http://fr.dbpedia.org/sparql'
+    wikidata = u'https://query.wikidata.org/bigdata/namespace/wdq/sparql/'
 
     # Bibliographic information
     bnf = u'http://data.bnf.fr/sparql/'
     # openBNB = u'http://bnb.data.bl.uk/sparql'  # The Linked Open British National Bibliography
 
+    # Lexical info
+    babelnet = u'http://babelnet.org/sparql/'
 
 
 class LanguagesIso6391(Enum):
