@@ -30,7 +30,7 @@ def test_rdftripletbuilder_base_case():
         predicate=u"<http://purl.org/dc/elements/1.1/title>"
     )
     assert rdf.subject == u'Test'
-    assert rdf.object == u'?o'
+    assert rdf.object == u'?o_%i' % rdf.class_counter
     assert rdf.predicate == u'dc:title'
     assert rdf.prefixes == [NameSpace.dc]
 
@@ -43,7 +43,7 @@ def test_rdftripletbuilder_check_prefix():
         predicate=u"<http://purl.org/dc/elements/1.1/title>"
     )
     assert rdf1.subject == u'foaf:name'
-    assert rdf1.object == u'?o'
+    assert rdf1.object == u'?o_%i' % rdf1.class_counter
     assert rdf1.predicate == u'dc:title'
 
     truth = [NameSpace.dc, NameSpace.foaf]
@@ -60,9 +60,9 @@ def test_rdftripletbuilder_prefix_normalization():
             " t3st_1234  : <http://foo.org/bar/1.1/buz.owl#>  .",
             "xsd: <http://www.w3.org/2001/XMLSchema#>"])
 
-    assert rdf2.subject == u'?s'
-    assert rdf2.object == u'?o'
-    assert rdf2.predicate == u'?p'
+    assert rdf2.subject == u'?s_%i' % rdf2.class_counter
+    assert rdf2.object == u'?o_%i' % rdf2.class_counter
+    assert rdf2.predicate == u'?p_%i' % rdf2.class_counter
 
     add_namespace("t3st_1234", "http://foo.org/bar/1.1/buz.owl#")
     truth = [NameSpace('http://foo.org/bar/1.1/buz.owl#'), NameSpace.xsd]

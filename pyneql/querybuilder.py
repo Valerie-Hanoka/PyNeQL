@@ -12,7 +12,6 @@ from loggingsetup import (
     highlight_str
 )
 
-from rdftriple import RDFTriple
 from utils import (
     QueryException,
 )
@@ -51,7 +50,7 @@ class GenericSPARQLQuery(object):
         self.triples = []  # a list of RDFTriples
         self.limit = u''
         self.query = self.template_query
-        self.query_results = None
+        self.results = None
 
     #  -------  Query preparation  -------#
     def add_query_triples(self, triples):
@@ -104,7 +103,7 @@ class GenericSPARQLQuery(object):
     def add_filter(self, arguments_names):
         """TODO"""
         # TODO
-        pass
+        raise NotImplementedError
 
     def add_endpoint(self, endpoint):
         """
@@ -166,8 +165,7 @@ class GenericSPARQLQuery(object):
         }
         self.query = self.template_query % arguments
 
-    #  -------  Query launch  -------#
-
+    #  -------  Query launch and response processing  -------#
     def _send_requests(self):
         """
         TODO
@@ -186,7 +184,7 @@ class GenericSPARQLQuery(object):
                 # "default-graph-uri": endpoint.value  # TODO nothing after .xyz
             }
             response = requests.get(endpoint.value, params=params, headers=headers)
-            import ipdb; ipdb.set_trace()
+
             if response.status_code == 200:
                 responses.append(response)
             else:
@@ -196,12 +194,23 @@ class GenericSPARQLQuery(object):
                     endpoint.value))
         return responses
 
+    def _get_results_from_response(self, http_responses):
+        """TODO"""
+        final_results = {}
+        responses = [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
+        for raw_results in responses:
+            for raw_result in raw_results:
+                for k, v in raw_result.iteritems():
+                    new_v = final_results.get(k, set([]))
+                    new_v.add(v[u'value'])
+                    final_results[k] = new_v
+        return final_results
+
     def commit(self):
         """TODO"""
         self._querify()
-        responses = self._send_requests()
-        self.query_results = [json.loads(r.content)[u'results'][u'bindings'] for r in responses]
-
+        response = self._send_requests()
+        self.results = self._get_results_from_response(response)
 
 
 class PersonQuery(GenericSPARQLQuery):
@@ -211,7 +220,7 @@ class PersonQuery(GenericSPARQLQuery):
 
     def __init__(self,
                  full_name=None,
-                 family_name=None,
+                 last_name=None,
                  first_name=None,
                  birth_date=None,
                  death_date=None,
@@ -219,13 +228,25 @@ class PersonQuery(GenericSPARQLQuery):
                  ):
         """TODO"""
         self.full_name = full_name
-        self.family_name = family_name,
+        self.last_name = last_name,
         self.first_name = first_name,
         self.birth_date = birth_date,
         self.death_date = death_date,
         self.query_language = query_language
 
+    def _querify(self):
+        """"""
+        # TODO constuire les triplets adéquats avec les prédicats correspondants
+        # à des éléments du vocabulaire
 
+# PREFIX dbpprop: <http://dbpedia.org/property/>
+# select distinct ?x ?y ?z ?z2 where {
+#   ?x rdf:type foaf:Person .
+#   ?x ?first_name "Benny"@en .
+#   ?x ?last_name "Goodman"@en .
+#   ?x ?y ?z .
+#   ?z rdfs:label ?z2 .
+# }
 
 
 class PeriodQuery(GenericSPARQLQuery):
@@ -259,5 +280,6 @@ class MasterPieceQuery(GenericSPARQLQuery):
         'query_term': "Max Power",
         'query_term_lang': Lang.DEFAULT,
     }
+    # Dublin core
 
 

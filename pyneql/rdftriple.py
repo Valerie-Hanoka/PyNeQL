@@ -123,7 +123,6 @@ class RDFTriple(object):
                     % known_pref)
 
         # Other cases
-        print element
         return normalize_str(element)
 
 
