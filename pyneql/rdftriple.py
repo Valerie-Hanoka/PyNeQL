@@ -23,6 +23,9 @@ from namespace import (
     get_consistent_namespace,
     add_namespace
 )
+
+from enum import LanguagesIso6391 as Lang
+
 import re
 
 
@@ -30,6 +33,8 @@ import re
 #        RDF formalism
 #---------------------------------
 RE_PREFIX_SEPARATOR = re.compile('.*/|#')
+RE_IS_STRING_LITERAL = re.compile('^\s*"[^"]*"\s*$')
+RE_IS_STRING_A_NUMBER = re.compile('^\s*"[0-9]*"\s*$')
 
 class RDFTriple(object):
     """
@@ -43,7 +48,8 @@ class RDFTriple(object):
                  subject=u'',
                  predicate=u'',
                  object=u'',
-                 prefixes=None):
+                 prefixes=None,
+                 language=Lang.DEFAULT):
 
         self.id = RDFTriple.class_counter
         RDFTriple.class_counter += 1
@@ -54,6 +60,7 @@ class RDFTriple(object):
         self.object = u"?o_%i" % RDFTriple.class_counter
         prefixes = prefixes or []
         self.add_prefixes(prefixes)
+        self.language = language
 
         # If variable is not instantiated, we use its name as a variable name
         if subject:
@@ -65,10 +72,21 @@ class RDFTriple(object):
 
         logging.info("Created triple %s" % highlight_str(self.__str__(), highlight_type='triple'))
 
-    def __str__(self):
+    def __str__(self, with_language=False):
         """
         :return: String version of the triple (without prefixes information)
         """
+        if with_language:
+            # If the query is prepared for a multilingual endpoint, we must postfix literal text information
+            # with its language
+            # E.g: '?person ?has_last_name "Obama".' becomes '?person ?has_last_name "Obama"@en.'
+            if re.match(RE_IS_STRING_LITERAL, self.object) and not re.match(RE_IS_STRING_A_NUMBER, self.object):
+                return u"%s %s %s ." % (
+                    self.subject,
+                    self.predicate,
+                    u'%s@%s' % (self.object, self.language.value)
+                )
+
         return u"%s %s %s ." % (self.subject, self.predicate, self.object)
 
     def _extract_prefix_from_rdf_element(self, element):
@@ -173,3 +191,13 @@ class RDFTriple(object):
         :return: the elements of the RDF triple which are variables.
         """
         return [e for e in (self.subject, self.object, self.predicate) if e[0] == u'?']
+
+    # def set_language(self, language):
+    #     """If the query is prepared for a multilingual endpoint, we must postfix
+    #     literal text information with its language
+    #     E.g:
+    #     >>> '?person ?has_last_name "Obama".'
+    #      becomes
+    #     >>>'?person ?has_last_name "Obama"@en.'
+    #     """
+

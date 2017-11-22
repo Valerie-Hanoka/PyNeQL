@@ -16,6 +16,8 @@ from pyneql.rdftriple import (
     RDFTriple
 )
 
+from pyneql.enum import LanguagesIso6391 as Lang
+
 from pyneql.namespace import NameSpace, add_namespace
 
 #---------------------------------------
@@ -88,3 +90,18 @@ def test_rdftripletbuilder_prefix_inconsistencies2():
         rdf = RDFTriple(prefixes=["xsd: <http://foo.org/bar/1.1/buz.owl#>"])
 
 
+def test_rdftripletbuilder_literal_language():
+    """RDFTriple - Literal with language: should pass"""
+
+    test1 = RDFTriple(object=u'"Clinton"', language=Lang.Albanian)
+    assert test1.__str__(with_language=True) == u'?s_7 ?p_7 "Clinton"@sq .'
+    assert test1.__str__() == u'?s_7 ?p_7 "Clinton" .'
+
+    test2 = RDFTriple(object=u'foaf:crap', language=Lang.Albanian)
+    assert test2.__str__(with_language=True) == test2.__str__()
+
+    test3 = RDFTriple(object="?var", language=Lang.Albanian)
+    assert test3.__str__(with_language=True) == test3.__str__()
+
+    test4 = RDFTriple(object=u'"1924"', language=Lang.Albanian)
+    assert test4.__str__(with_language=True) == test4.__str__()

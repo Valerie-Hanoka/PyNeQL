@@ -17,8 +17,8 @@ from utils import (
 )
 
 from enum import (
-    LanguagesIso6391 as Lang,
-    Endpoint
+    Endpoint,
+    is_endpoint_multilingual
 )
 
 from namespace import (
@@ -68,6 +68,8 @@ class GenericSPARQLQuery(object):
         self.triples.append(triple)
         for p in triple.prefixes:
             self.prefixes.add(p)
+            logging.info("Adding triple (%s) to query." %
+                         highlight_str(triple, highlight_type='triple'))
 
     def query_from(self, endpoints):
         """ Add an endpoint to the current query. This query will be send to
@@ -79,6 +81,7 @@ class GenericSPARQLQuery(object):
             for endpoint in endpoints:
                 if type(endpoint) == Endpoint:
                     self.endpoints.add(endpoint)
+                    logging.info("Adding endpoint %s to query." % highlight_str(endpoint.value))
                 else:
                     raise QueryException(u"Endpoint %s not supported yet." % endpoint)
 
@@ -89,10 +92,12 @@ class GenericSPARQLQuery(object):
         match = get_consistent_namespace(abbr, url)
         if match:
             self.prefixes.add(match)
+            logging.info("Adding prefix %s to query." % highlight_str(match))
         else:
             # Unknown namespace, adding it to the vocabulary
             new_namespace = add_namespace(abbr, url)
             self.prefixes.add(new_namespace)
+            logging.info("Adding prefix %s to query." % highlight_str(new_namespace))
         pass
 
     def add_prefixes(self, prefixes):
@@ -131,7 +136,8 @@ class GenericSPARQLQuery(object):
         elif limit < 1:
             raise QueryException(u" Bad limit value. Must be greater than 0.")
 
-        self.limit = u'LIMIT %i' %limit
+        self.limit = u'LIMIT %i' % limit
+        logging.info("Adding limit = %i to query." % limit)
 
     #  -------  Query Validation & preparation -------#
     def _validate_arguments(self):
@@ -151,16 +157,18 @@ class GenericSPARQLQuery(object):
         # Check that there is at least one endpoint specified. If not, adding the default endpoint.
         if len(self.endpoints) == 0:
             self.endpoints.add(Endpoint.DEFAULT)
+            logging.warning("No endpoint were set - Using DEFAULT (%s)" %
+                            highlight_str(Endpoint.DEFAULT.value))
 
-    def _querify(self):
+    def _querify(self, display_lang=False):
         """ Build a well formed SPARQL query with the given arguments. """
 
-        self._validate_arguments()
         prefix_strs = (u'PREFIX %s: <%s>' % (prefix.name, prefix.value) for prefix in self.prefixes)
+
         arguments = {
             u'prefix': u' '.join(prefix_strs),
             u'result_arguments': u'*',  # TODO
-            u'triples': u' '.join((str(t) for t in self.triples)),
+            u'triples': u' '.join((t.__str__(display_lang) for t in self.triples)),
             u'limit': self.limit,
         }
         self.query = self.template_query % arguments
@@ -172,16 +180,25 @@ class GenericSPARQLQuery(object):
         :return:
         """
         responses = []
+
+        self._validate_arguments()
+
         for endpoint in self.endpoints:
+
+            # Depending on the endpoint, queries may be slightly different, especially
+            # concerning language information of literals.
+            self._querify(display_lang=is_endpoint_multilingual(endpoint))
+
             logging.info("Sending query %s to endpoint %s ..." % (
                 highlight_str(self.query, highlight_type='query'),
                 endpoint.value))
+
             headers = {
                 'Accept': 'application/json'
             }
             params = {
                 "query": self.query,
-                # "default-graph-uri": endpoint.value  # TODO nothing after .xyz
+                # "default-graph-uri": endpoint.value  # nothing after .xyz
             }
             response = requests.get(endpoint.value, params=params, headers=headers)
 
@@ -208,78 +225,7 @@ class GenericSPARQLQuery(object):
 
     def commit(self):
         """TODO"""
-        self._querify()
         response = self._send_requests()
         self.results = self._get_results_from_response(response)
-
-
-class PersonQuery(GenericSPARQLQuery):
-    """
-    TODO
-    """
-
-    def __init__(self,
-                 full_name=None,
-                 last_name=None,
-                 first_name=None,
-                 birth_date=None,
-                 death_date=None,
-                 query_language=Lang.DEFAULT
-                 ):
-        """TODO"""
-        self.full_name = full_name
-        self.last_name = last_name,
-        self.first_name = first_name,
-        self.birth_date = birth_date,
-        self.death_date = death_date,
-        self.query_language = query_language
-
-    def _querify(self):
-        """"""
-        # TODO constuire les triplets adéquats avec les prédicats correspondants
-        # à des éléments du vocabulaire
-
-# PREFIX dbpprop: <http://dbpedia.org/property/>
-# select distinct ?x ?y ?z ?z2 where {
-#   ?x rdf:type foaf:Person .
-#   ?x ?first_name "Benny"@en .
-#   ?x ?last_name "Goodman"@en .
-#   ?x ?y ?z .
-#   ?z rdfs:label ?z2 .
-# }
-
-
-class PeriodQuery(GenericSPARQLQuery):
-    """
-    TODO: Time and period
-    SELECT * WHERE
-    { ?x
-    rdfs:label
-    "Renaissance" @ fr; ?y ?z.}
-    pass
-    """
-
-
-
-class LocationQuery(GenericSPARQLQuery):
-    """
-    TODO: a place
-    """
-
-    options = {
-        'query_term': "Max Power",
-        'query_term_lang': Lang.DEFAULT,
-    }
-
-class MasterPieceQuery(GenericSPARQLQuery):
-    """
-    TODO: une oeuvre
-    """
-
-    options = {
-        'query_term': "Max Power",
-        'query_term_lang': Lang.DEFAULT,
-    }
-    # Dublin core
 
 
