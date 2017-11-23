@@ -22,6 +22,8 @@ Not yet
 Usage
 -----
 
+Looking for "Marguerite Duras" in the Bibliothèque Nationale de France and French DBPedia:
+
 .. code:: python
 
     >>> from personquerybuilder import PersonQuery
@@ -31,6 +33,11 @@ Usage
     >>> duras = PersonQuery(first_name="Marguerite", last_name="Duras")
     >>> duras.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])
     >>> duras.query()
+
+
+Ath the moment, the result is as follow:
+
+.. code:: python
 
     >>> pprint(duras.attributes)
         {u'22-rdf-syntax-ns#type': set([u'http://xmlns.com/foaf/0.1/Person']),
