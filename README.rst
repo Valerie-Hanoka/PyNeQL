@@ -72,5 +72,5 @@ Ath the moment, the result is as follow:
          u'page': set([u'http://data.bnf.fr/11901349/marguerite_duras/']),
          u'placeOfBirth': set([u'Gia Dinh (Vietnam)']),
          u'placeOfDeath': set([u'Paris'])}
-```
+
 
