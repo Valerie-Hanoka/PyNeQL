@@ -45,7 +45,7 @@ class GenericSPARQLQuery(object):
 
     def __init__(self):
         self.prefixes = set([])  # a set of vocabulary.prefixes
-        self.result_arguments = ["*"]  # a list of string representing variables. Ex: "?name"
+        self.result_arguments = []  # a list of string representing variables. Ex: "?name"
         self.endpoints = set([])  # SPARQL endpoints where the query should be sent
         self.triples = []  # a list of RDFTriples
         self.limit = u''
@@ -53,6 +53,18 @@ class GenericSPARQLQuery(object):
         self.results = None
 
     #  -------  Query preparation  -------#
+    def add_result_arguments(self, arguments):
+        """Add a list of arguments (SPARQL variables) to the SELECT query."""
+        map(self.add_result_argument, arguments)
+
+    def add_result_argument(self, argument):
+        """Add an argument (SPARQL variable) to the SELECT query.
+        For instance, adding argument "?name" will result in a SPARQL
+        query having "?name" as part of its variables:
+        >>> "SELECT ... ?name ... WHERE {...}"
+        """
+        self.result_arguments.append(argument)
+
     def add_query_triples(self, triples):
         """ Add a list of RDF triples to the body of the select query.
         :param triples: A list of RDFtriples
@@ -165,9 +177,13 @@ class GenericSPARQLQuery(object):
 
         prefix_strs = (u'PREFIX %s: <%s>' % (prefix.name, prefix.value) for prefix in self.prefixes)
 
+        result_arguments = \
+            u'*' if len(self.result_arguments) == 0 \
+            else u' '.join(self.result_arguments)
+
         arguments = {
             u'prefix': u' '.join(prefix_strs),
-            u'result_arguments': u'*',  # TODO
+            u'result_arguments': result_arguments,
             u'triples': u' '.join((t.__str__(display_lang) for t in self.triples)),
             u'limit': self.limit,
         }
@@ -213,15 +229,8 @@ class GenericSPARQLQuery(object):
 
     def _get_results_from_response(self, http_responses):
         """TODO"""
-        final_results = {}
-        responses = [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
-        for raw_results in responses:
-            for raw_result in raw_results:
-                for k, v in raw_result.iteritems():
-                    new_v = final_results.get(k, set([]))
-                    new_v.add(v[u'value'])
-                    final_results[k] = new_v
-        return final_results
+        return [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
+
 
     def commit(self):
         """TODO"""

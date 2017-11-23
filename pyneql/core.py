@@ -8,12 +8,14 @@ Author: Valérie Hanoka
 
 from personquerybuilder import PersonQuery
 from enum import Endpoint
+from pprint import pprint
 
-person = PersonQuery(first_name="Marguerite", last_name="Duras")
+duras = PersonQuery(first_name="Marguerite", last_name="Duras")
+duras.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])  # Endpoint.dbpedia, Endpoint.dbpedia_fr
+duras.query()
 
-# TODO: BnF 403 http code
-person.add_endpoints([Endpoint.bnf])  # , Endpoint.dbpedia, Endpoint.dbpedia_fr
-person.query()
+pprint(duras.attributes)
+
 
 import ipdb; ipdb.set_trace()
 

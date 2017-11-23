@@ -24,3 +24,4 @@ def normalize_str(s):
     return u' '.join(s.split())
 
 
+

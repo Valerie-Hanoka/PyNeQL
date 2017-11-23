@@ -18,9 +18,11 @@ from enum import (
     LanguagesIso6391 as Lang,
     Endpoint
 )
+from namespace import get_uri_last_part
 from utils import (
     QueryException,
 )
+
 
 class PersonQuery(object):
     """
@@ -29,7 +31,11 @@ class PersonQuery(object):
 
     setup_logging()
 
-    person_variable = u'?person'
+    args = {
+        'subject': u'?person',
+        'predicate': u'?pred',
+        'object': u'?obj'
+    }
 
     # Elements which will be used to construct the query
     has_full_name = None
@@ -39,6 +45,9 @@ class PersonQuery(object):
     # Query
     query_builder = None
     endpoints = None
+
+    # Results
+    attributes = None
 
     def __init__(self,
                  full_name=None, last_name=None, first_name=None,
@@ -58,6 +67,7 @@ class PersonQuery(object):
         self.query_builder = GenericSPARQLQuery()
 
         self.endpoints = endpoints if endpoints else set([])
+        self.attributes = {}
 
     def add_endpoints(self, endpoints):
         map(self.add_endpoint, endpoints)
@@ -65,12 +75,15 @@ class PersonQuery(object):
     def add_endpoint(self, endpoint):
         self.endpoints.add(endpoint)
 
-
     def _build_query(self):
 
         # Restricting the query to only foaf:Person elements
         self.query_builder.add_query_triple(
-            RDFTriple(subject=self.person_variable, predicate=u'a', object=u'foaf:Person')
+            RDFTriple(
+                subject=self.args['subject'],
+                predicate=u'a',
+                object=u'foaf:Person'
+            )
         )
 
         # Adding query delimiters
@@ -80,23 +93,50 @@ class PersonQuery(object):
             obj = u'"%s"' % tmp if tmp else u'?%s' % entity_name
             pred = u'?%s' % entity_name
             self.query_builder.add_query_triple(
-                RDFTriple(subject=self.person_variable, predicate=pred, object=obj)
+                RDFTriple(
+                    subject=self.args['subject'],
+                    predicate=pred,
+                    object=obj
+                )
             )
 
         # Fetching everything about that person
         self.query_builder.add_query_triple(
-            RDFTriple(subject=self.person_variable, predicate="?pred", object="?obj")
+            RDFTriple(
+                subject=self.args['subject'],
+                predicate=self.args['predicate'],
+                object=self.args['object'])
         )
 
     def query(self):
 
         self._build_query()
         self.query_builder.add_endpoints(self.endpoints)
+        wanna_know = [self.args['predicate'], self.args['object']]
+        self.query_builder.add_result_arguments(wanna_know)
         self.query_builder.commit()
-        import ipdb; ipdb.set_trace()
+        self.get_results()
 
 
 
+    def get_results(self):
+        """Given the result of a SPARQL query to find a Person,
+        this creates a Person with all the information gathered."""
+
+        pred_name = self.args['predicate'][1:]  # the variable without its initial '?'
+        obj_name = self.args['object'][1:]
+
+        for raw_results in self.query_builder.results:
+            for raw_result in raw_results:
+                pred = get_uri_last_part(raw_result[pred_name][u'value'])
+                obj = get_uri_last_part(raw_result[obj_name][u'value']) \
+                    if raw_result[obj_name][u'type'] is u'uri' \
+                    else raw_result[obj_name][u'value']
+
+                # Appending the value of current predicates to the results
+                pred_values = self.attributes.get(pred, set([]))
+                pred_values.add(obj)
+                self.attributes[pred] = pred_values
 
 
 # PREFIX dbpprop: <http://dbpedia.org/property/>

@@ -122,6 +122,16 @@ class NameSpace(Enum):
     foaf = u'http://xmlns.com/foaf/0.1/'
 
 
+def get_uri_last_part(uri):
+    """
+    Returns only the last part of an URI. E.g:
+    >>> get_uri_last_part("http://rdvocab.info/ElementsGr2/dateOfDeath")
+    >>> dateOfDeath
+    :param uri: An URI
+    :return: the last part of the URI
+    """
+    return uri.rpartition('/')[-1]
+
 def decompose_prefix(prefix):
     """
     Decomposes a prefix in its parts.

@@ -94,8 +94,8 @@ def test_rdftripletbuilder_literal_language():
     """RDFTriple - Literal with language: should pass"""
 
     test1 = RDFTriple(object=u'"Clinton"', language=Lang.Albanian)
-    assert test1.__str__(with_language=True) == u'?s_7 ?p_7 "Clinton"@sq .'
-    assert test1.__str__() == u'?s_7 ?p_7 "Clinton" .'
+    assert test1.__str__(with_language=True) == u'?s_%i ?p_%i "Clinton"@sq .' % (test1.class_counter, test1.class_counter)
+    assert test1.__str__() == u'?s_%i ?p_%i "Clinton" .' % (test1.class_counter, test1.class_counter)
 
     test2 = RDFTriple(object=u'foaf:crap', language=Lang.Albanian)
     assert test2.__str__(with_language=True) == test2.__str__()
