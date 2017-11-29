@@ -1,10 +1,11 @@
+![PyNeQL](https://github.com/Valerie-Hanoka/PyNeQL/blob/master/illustration.png)
+
+
 PyNeQL: a module for searching Named Entity on SPARQL endpoints
 ===========================================================
 
 *In development*
 ---------------
-
-![alt text](https://github.com/Valerie-Hanoka/PyNeQL/blob/master/illustration.png)
 
 
 Linked Data is the global database of the World Wide Web.
