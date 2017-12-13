@@ -21,6 +21,7 @@ from enum import (
 from namespace import get_uri_last_part
 from utils import (
     QueryException,
+    merge_two_dicts_in_sets
 )
 
 
@@ -47,7 +48,7 @@ class PersonQuery(object):
     endpoints = None
 
     # Results
-    attributes = None
+    results = None
 
     def __init__(self,
                  full_name=None, last_name=None, first_name=None,
@@ -67,7 +68,7 @@ class PersonQuery(object):
         self.query_builder = GenericSPARQLQuery()
 
         self.endpoints = endpoints if endpoints else set([])
-        self.attributes = {}
+        self.results = {}
 
     def add_endpoints(self, endpoints):
         map(self.add_endpoint, endpoints)
@@ -115,38 +116,18 @@ class PersonQuery(object):
         wanna_know = [self.args['predicate'], self.args['object']]
         self.query_builder.add_result_arguments(wanna_know)
         self.query_builder.commit()
-        self.get_results()
+        self._get_results()
 
-
-
-    def get_results(self):
+    def _get_results(self):
         """Given the result of a SPARQL query to find a Person,
         this creates a Person with all the information gathered."""
 
-        pred_name = self.args['predicate'][1:]  # the variable without its initial '?'
-        obj_name = self.args['object'][1:]
-
-        for raw_results in self.query_builder.results:
-            for raw_result in raw_results:
-                pred = get_uri_last_part(raw_result[pred_name][u'value'])
-                obj = get_uri_last_part(raw_result[obj_name][u'value']) \
-                    if raw_result[obj_name][u'type'] is u'uri' \
-                    else raw_result[obj_name][u'value']
-
-                # Appending the value of current predicates to the results
-                pred_values = self.attributes.get(pred, set([]))
-                pred_values.add(obj)
-                self.attributes[pred] = pred_values
-
-
-# PREFIX dbpprop: <http://dbpedia.org/property/>
-# select distinct ?x ?y ?z ?z2 where {
-#   ?x rdf:type foaf:Person .
-#   ?x ?first_name "Benny"@en .
-#   ?x ?last_name "Goodman"@en .
-#   ?x ?y ?z .
-#   ?z rdfs:label ?z2 .
-# }
+        to_dict = lambda (predicate, object): {predicate[1]: object[1]}
+        for result in self.query_builder.results:
+            self.results = merge_two_dicts_in_sets(
+                self.results,
+                to_dict(result)
+            )
 
 
 class PeriodQuery(object):

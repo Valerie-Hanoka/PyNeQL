@@ -33,6 +33,11 @@ import requests
 import json
 from functools import reduce
 
+# Debug
+import pprint;
+import ipdb;
+
+
 #  ---------------------------------
 #        SPARQL queries
 #  ---------------------------------
@@ -52,7 +57,7 @@ class GenericSPARQLQuery(object):
         self.triples = []  # a list of RDFTriples
         self.limit = u''
         self.query = self.template_query
-        self.results = None
+        self.results = []
 
     #  -------  Query preparation  -------#
     def add_result_arguments(self, arguments):
@@ -230,10 +235,29 @@ class GenericSPARQLQuery(object):
         return responses
 
     def _compute_results_from_response(self, http_responses):
-        """TODO"""
+        """Given the http response corresponding to self.query, this method
+        stores in self.results the list of list of subject, predicates and object
+        (which were arguments of the query), associated to their values.
+        Eg.:
+        >>>pprint.pprint(self.results)
+        >>>[
+        >>>  [ (u'subj', u'http://fr.dbpedia.org/resource/Marguerite_Duras'),
+        >>>    (u'pred', u'http://rdvocab.info/ElementsGr2/placeOfBirth'),
+        >>>    (u'obj', u'Gia Dinh (Vietnam)')
+        >>>   ],
+        >>>  [ (u'subj', u'http://fr.dbpedia.org/resource/Marguerite_Duras'),
+        >>>    (u'pred', u'http://rdvocab.info/ElementsGr2/placeOfDeath'),
+        >>>    (u'obj', u'Paris')
+        >>>  ]
+        >>>]
+        """
 
         results = [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
-        self.results = reduce(lambda x, y: merge_two_dicts_in_lists(x, y), results[0])
+        for result in results:
+            self.results += map(
+                lambda d: [(k, v[u'value']) for k, v in d.items()],
+                result)
+
 
     def commit(self):
         """TODO"""

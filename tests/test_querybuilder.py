@@ -62,19 +62,16 @@ def test_genericsparqlquery_base_case():
     ratio = fuzz.ratio(query.query, truth_query)
     assert ratio > 98
 
-    truth_results = {
-        u'birthdate': {
-            u'datatype': [u'http://www.w3.org/2001/XMLSchema#date',
-                          u'http://www.w3.org/2001/XMLSchema#date'],
-            u'type': [u'typed-literal', u'typed-literal'],
-            u'value': [u'1908-01-09', u'1908-1-9']},
-        u'gender': {
-            u'type': [u'literal', u'literal'],
-            u'value': [u'female', u'female'],
-            u'xml:lang': [u'en', u'en']},
-        u'person': {u'type': [u'uri', u'uri'],
-                    u'value': [u'http://dbpedia.org/resource/Simone_de_Beauvoir',
-                               u'http://dbpedia.org/resource/Simone_de_Beauvoir']}
-    }
+    truth_results = [
+        [
+            (u'person', u'http://dbpedia.org/resource/Simone_de_Beauvoir'),
+            (u'birthdate', u'1908-01-09'),
+            (u'gender', u'female')],
+        [
+            (u'person', u'http://dbpedia.org/resource/Simone_de_Beauvoir'),
+            (u'birthdate', u'1908-1-9'),
+            (u'gender', u'female')
+        ]
+    ]
 
-    assert cmp(query.results, truth_results) == 0
+    assert query.results == truth_results
