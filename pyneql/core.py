@@ -14,10 +14,9 @@ duras = PersonQuery(first_name="Marguerite", last_name="Duras")
 duras.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])  # Endpoint.dbpedia, Endpoint.dbpedia_fr
 duras.query()
 
-pprint(duras.attributes)
+pprint(duras.results)
 
 
-import ipdb; ipdb.set_trace()
 
 
 

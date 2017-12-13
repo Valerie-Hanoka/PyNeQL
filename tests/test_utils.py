@@ -27,7 +27,7 @@ def test_utils_merge_two_dicts_in_list1():
         'only_x': {'only_x': 'baz'},
         'only_y': 'only_y'
     }
-    assert cmp(merged, truth) == 0
+    assert merged == truth
 
 
 def test_utils_merge_two_dicts_in_list2():
@@ -42,7 +42,7 @@ def test_utils_merge_two_dicts_in_list2():
         'only_x': 'only_x',
         'only_y': 'only_y'
     }
-    assert cmp(merged, truth) == 0
+    assert merged == truth
 
 
 
@@ -60,7 +60,7 @@ def test_utils_merge_two_dicts_in_sets1():
         'only_x': {'only_x': 'baz'},
         'only_y': 'only_y'
     }
-    assert cmp(merged, truth) == 0
+    assert merged == truth
 
 
 def test_utils_merge_two_dicts_in_sets2():
@@ -79,7 +79,7 @@ def test_utils_merge_two_dicts_in_sets2():
     import pprint
     pprint.pprint(merged)
 
-    assert cmp(merged, truth) == 0
+    assert merged == truth
 
 
 
@@ -100,4 +100,4 @@ def test_utils_normalize_str():
                       u"and quacks like a duck, then it's probably a duck."
 
     assert isinstance(normalised, unicode)
-    assert well_normalised==normalised
+    assert well_normalised == normalised
