@@ -14,6 +14,7 @@ from loggingsetup import (
 
 from utils import (
     QueryException,
+    merge_two_dicts_in_lists
 )
 
 from enum import (
@@ -30,6 +31,7 @@ from namespace import (
 
 import requests
 import json
+from functools import reduce
 
 #  ---------------------------------
 #        SPARQL queries
@@ -227,14 +229,15 @@ class GenericSPARQLQuery(object):
                     endpoint.value))
         return responses
 
-    def _get_results_from_response(self, http_responses):
+    def _compute_results_from_response(self, http_responses):
         """TODO"""
-        return [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
 
+        results = [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
+        self.results = reduce(lambda x, y: merge_two_dicts_in_lists(x, y), results[0])
 
     def commit(self):
         """TODO"""
         response = self._send_requests()
-        self.results = self._get_results_from_response(response)
+        self._compute_results_from_response(response)
 
 

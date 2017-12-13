@@ -6,9 +6,7 @@ Author: Valérie Hanoka
 
 """
 
-from nose.tools import *
 from fuzzywuzzy import fuzz
-
 from pyneql.querybuilder import GenericSPARQLQuery
 from pyneql.rdftriple import RDFTriple
 from pyneql.namespace import NameSpace
@@ -65,9 +63,18 @@ def test_genericsparqlquery_base_case():
     assert ratio > 98
 
     truth_results = {
-        u'person': set([u'http://dbpedia.org/resource/Simone_de_Beauvoir']),
-        u'birthdate': set([u'1908-01-09', u'1908-1-9']),
-        u'gender': set([u'female'])}
-    assert not query.results[u'person'].difference(truth_results[u'person'])
-    assert not query.results[u'birthdate'].difference(truth_results[u'birthdate'])
-    assert not query.results[u'gender'].difference(truth_results[u'gender'])
+        u'birthdate': {
+            u'datatype': [u'http://www.w3.org/2001/XMLSchema#date',
+                          u'http://www.w3.org/2001/XMLSchema#date'],
+            u'type': [u'typed-literal', u'typed-literal'],
+            u'value': [u'1908-01-09', u'1908-1-9']},
+        u'gender': {
+            u'type': [u'literal', u'literal'],
+            u'value': [u'female', u'female'],
+            u'xml:lang': [u'en', u'en']},
+        u'person': {u'type': [u'uri', u'uri'],
+                    u'value': [u'http://dbpedia.org/resource/Simone_de_Beauvoir',
+                               u'http://dbpedia.org/resource/Simone_de_Beauvoir']}
+    }
+
+    assert cmp(query.results, truth_results) == 0
