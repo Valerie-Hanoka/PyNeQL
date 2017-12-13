@@ -19,5 +19,8 @@ setup(
     author_email='TODO',
     url='https://github.com/TODO',
     license=license,
+    setup_requires=['nose'],
+    tests_require=['coverage'],
     packages=find_packages(exclude=('tests', 'docs'))
 )
+
