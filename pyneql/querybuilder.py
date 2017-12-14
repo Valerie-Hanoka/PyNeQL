@@ -33,10 +33,6 @@ import requests
 import json
 from functools import reduce
 
-# Debug
-import pprint;
-import ipdb;
-
 
 #  ---------------------------------
 #        SPARQL queries
