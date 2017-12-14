@@ -41,7 +41,6 @@ duras.query()
 Ath the moment, the result is as follow:
 
 ```python
-
 pprint.pprint(duras.attributes)
 {u'http://data.bnf.fr/ontology/bnf-onto/firstYear': u'1914',
  u'http://data.bnf.fr/ontology/bnf-onto/lastYear': u'1996',
