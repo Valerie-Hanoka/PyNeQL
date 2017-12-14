@@ -6,6 +6,8 @@ A module for searching Named Entity on SPARQL endpoints
 
 
 [![Build Status](https://travis-ci.org/Valerie-Hanoka/PyNeQL.svg?branch=master)](https://travis-ci.org/Valerie-Hanoka/PyNeQL)
+[![Coverage Status](https://coveralls.io/repos/github/Valerie-Hanoka/PyNeQL/badge.svg)](https://coveralls.io/github/Valerie-Hanoka/PyNeQL)
+
 *In development*
 ---------------
 
