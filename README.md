@@ -1,9 +1,11 @@
 ![PyNeQL](https://github.com/Valerie-Hanoka/PyNeQL/blob/master/illustration.png)
 
 
-PyNeQL: a module for searching Named Entity on SPARQL endpoints
+A module for searching Named Entity on SPARQL endpoints
 ===========================================================
 
+
+[![Build Status](https://travis-ci.org/Valerie-Hanoka/PyNeQL.svg?branch=master)](https://travis-ci.org/Valerie-Hanoka/PyNeQL)
 *In development*
 ---------------
 
