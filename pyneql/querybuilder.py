@@ -12,10 +12,7 @@ from loggingsetup import (
     highlight_str
 )
 
-from utils import (
-    QueryException,
-    merge_two_dicts_in_lists
-)
+from utils import QueryException
 
 from enum import (
     Endpoint,
@@ -31,8 +28,6 @@ from namespace import (
 
 import requests
 import json
-from functools import reduce
-
 
 #  ---------------------------------
 #        SPARQL queries
@@ -41,7 +36,7 @@ from functools import reduce
 
 class GenericSPARQLQuery(object):
     """A generic SPARQL 'select' query builder.
-     It is used to build queries iteratively."""
+     It is used to build SPARQL queries iteratively."""
 
     setup_logging()
     template_query = u'%(prefix)s SELECT %(result_arguments)s WHERE { %(triples)s } %(limit)s'
@@ -86,20 +81,6 @@ class GenericSPARQLQuery(object):
             logging.info("Adding triple (%s) to query." %
                          highlight_str(triple, highlight_type='triple'))
 
-    def query_from(self, endpoints):
-        """ Add an endpoint to the current query. This query will be send to
-        evey listed endpoint. The result will be aggregated.
-        For list of supported endpoints, see enum.Endpoints."""
-        if type(endpoints) == Endpoint:
-            self.endpoints.add(endpoints)
-        else:
-            for endpoint in endpoints:
-                if type(endpoint) == Endpoint:
-                    self.endpoints.add(endpoint)
-                    logging.info("Adding endpoint %s to query." % highlight_str(endpoint.value))
-                else:
-                    raise QueryException(u"Endpoint %s not supported yet." % endpoint)
-
     def add_prefix(self, prefix):
         """ Convert a string 'abbr: <url>' into a NameSpace, and
         add this NameSpace to the query parameters."""
@@ -121,20 +102,22 @@ class GenericSPARQLQuery(object):
         map(self.add_prefix, prefixes)
 
     def add_filter(self, arguments_names):
-        """TODO"""
+        """Not Implemented Yet: Add a filter clause to the SPARQL query."""
         # TODO
         raise NotImplementedError
 
     def add_endpoint(self, endpoint):
         """
-        Add the endpoint to the query.
+        Add the endpoint to the current query. This query will be send to
+        evey listed endpoint. The result will be aggregated.
+        For list of supported endpoints, see enum.Endpoints
         :param endpoint: the endpoint to add
         :return:
         """
         if type(endpoint) == Endpoint:
             self.endpoints.add(endpoint)
         else:
-            raise QueryException(u" Bad endpoint type. Must be an Endpoint, got %i instead." % type(endpoint))
+            raise QueryException(u" Bad endpoint type. Must be an Endpoint, got %s instead." % type(endpoint))
 
     def add_endpoints(self, endpoints):
         """
@@ -147,7 +130,7 @@ class GenericSPARQLQuery(object):
     def set_limit(self, limit):
         """ Limits the number of results the query returns."""
         if type(limit) != int:
-            raise QueryException(u" Bad limit type. Must be an int, got %i instead." % type(limit))
+            raise QueryException(u" Bad limit type. Must be an int, got %s instead." % type(limit))
         elif limit < 1:
             raise QueryException(u" Bad limit value. Must be greater than 0.")
 
@@ -195,8 +178,8 @@ class GenericSPARQLQuery(object):
     #  -------  Query launch and response processing  -------#
     def _send_requests(self):
         """
-        TODO
-        :return:
+        Send the current query to the SPARQL endpoints declared in self.endpoints.
+        :return: the list of http responses for the current query fore each SPARQL endpoint.
         """
         responses = []
 
@@ -254,9 +237,9 @@ class GenericSPARQLQuery(object):
                 lambda d: [(k, v[u'value']) for k, v in d.items()],
                 result)
 
-
     def commit(self):
-        """TODO"""
+        """Send the current query to the specified SPARQL endpoints and stores the
+        query results in the results attribute."""
         response = self._send_requests()
         self._compute_results_from_response(response)
 

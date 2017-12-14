@@ -6,10 +6,9 @@ Author: Valérie Hanoka
 
 """
 
-from aenum import Enum, extend_enum
+from aenum import Enum
 
-
-rdf_types =  {
+rdf_types = {
     u'person': {
         "foaf:Person",
         "dbpedia_owl:Person",
@@ -18,8 +17,7 @@ rdf_types =  {
 }
 
 
-
-class PersonName():
+class PersonName(object):
     """
     Curated list of predicates giving access to a person's name in the endpoints:
         - DBPedia
@@ -27,6 +25,7 @@ class PersonName():
     """
 
     class AlternativeName(Enum):
+        """ Predicates describing a person's alternative names or nicknames."""
         altname = u'dbpprop:altname'
         nickname = u'dbpprop:nickname'
         nicknames = u'dbpprop:nicknames'
@@ -38,20 +37,21 @@ class PersonName():
         othernames = u'dbpprop:othernames'
 
     class FullName(Enum):
+        """ Predicates describing a person's full name."""
         birthname = u'dbpprop:birthname'
         birthnames = u'dbpprop:birthnames'
         fullname = u'dbpprop:fullname'
         dbpprop_name = u'dbpprop:name'
         foaf_name = u'foaf:name'
 
-    class FirstName(Enum):  # Prénom
-        firstname = u'dbpprop:firstname' # TODO: suppr ?
+    class FirstName(Enum):
+        """ Predicates describing a person's first name."""
+        firstname = u'dbpprop:firstname'  # TODO: suppr ?
         givenname = u'dbpprop:givenname'
 
     class LastName(Enum):
-        surname = u'foaf:surname'
-        lastname = u'dbpprop:lastname' # TODO: suppr ?
+        """ Predicates describing a person's last name."""
+        foaf_surname = u'foaf:surname'
+        lastname = u'dbpprop:lastname'  # TODO: suppr ?
         maidenname = u'dbpprop:maidenname'
-        surname	= u'dbpprop:surname'
-
-
+        dbpprop_surname = u'dbpprop:surname'
