@@ -6,11 +6,15 @@ Author: Valérie Hanoka
 
 """
 
+from nose.tools import *
+
 from fuzzywuzzy import fuzz
 from pyneql.querybuilder import GenericSPARQLQuery
 from pyneql.rdftriple import RDFTriple
 from pyneql.namespace import NameSpace
 from pyneql.enum import Endpoint
+from pyneql.utils import QueryException
+
 
 
 #---------------------------------------
@@ -75,3 +79,47 @@ def test_genericsparqlquery_base_case():
     ]
 
     assert query.results == truth_results
+
+def test_genericsparqlquery_add_prefixes():
+    """GenericSPARQLQuery.add_prefix() - Base case, no issues: Should pass"""
+    query = GenericSPARQLQuery()
+    query.add_prefixes(['foaf: <http://xmlns.com/foaf/0.1/>', 'bar: <http://baz.com/foo/0.1/>'])
+    assert query.prefixes == set([NameSpace.foaf, NameSpace.bar])
+
+
+def test_genericsparqlquery_add_endpoints():
+    """GenericSPARQLQuery.add_endpoint.s() - Base case, no issues: Should pass"""
+
+    query = GenericSPARQLQuery()
+    query.add_endpoint(Endpoint.dbpedia)
+    assert query.endpoints == set([Endpoint.dbpedia])
+
+    query.add_endpoints([Endpoint.babelnet, Endpoint.dbpedia_fr])
+    assert query.endpoints == set([Endpoint.dbpedia, Endpoint.babelnet, Endpoint.dbpedia_fr])
+
+@raises(QueryException)
+def test_genericsparqlquery_add_endpoints_unsupported_endpoint():
+    """GenericSPARQLQuery.add_endpoints() - Unsupported endpoint: Should fail"""
+    query = GenericSPARQLQuery()
+    query.add_endpoints([Endpoint.bnf, "www.foo.bar.com/sparql"])
+
+
+@raises(QueryException)
+def test_genericsparqlquery_set_limit_unsupported_limit1():
+    """GenericSPARQLQuery.set_limit() - Unsupported limit: Should fail"""
+    query = GenericSPARQLQuery()
+    query.set_limit("42")
+
+
+@raises(QueryException)
+def test_genericsparqlquery_set_limit_unsupported_limit2():
+    """GenericSPARQLQuery.set_limit() - Unsupported limit: Should fail"""
+    query = GenericSPARQLQuery()
+    query.set_limit(0)
+
+
+@raises(QueryException)
+def test_genericsparqlquery__validate_arguments_bad_query1():
+    """GenericSPARQLQuery._validate_arguments() - Empty query: Should fail"""
+    query = GenericSPARQLQuery()
+    query.commit()
