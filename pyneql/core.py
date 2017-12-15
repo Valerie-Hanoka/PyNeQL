@@ -6,15 +6,20 @@ Author: Valérie Hanoka
 
 """
 
-from personquerybuilder import PersonQuery
-from enum import Endpoint
-from pprint import pprint
+from person import Person
+from enum import (
+    Endpoint,
+    LanguagesIso6391 as Lang
+)
 
-duras = PersonQuery(first_name="Marguerite", last_name="Duras")
-duras.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])  # Endpoint.dbpedia, Endpoint.dbpedia_fr
+duras = Person(first_name="Marguerite", last_name="Duras", query_language=Lang.French)
+duras.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.bnf, Endpoint.dbpedia])  # Endpoint.dbpedia, Endpoint.dbpedia_fr
 duras.query()
 
-pprint(duras.results)
+pprint(duras.attributes)
+
+
+
 
 
 

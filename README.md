@@ -33,10 +33,10 @@ Usage
 Looking for "Marguerite Duras" in the Bibliothèque Nationale de France and French DBPedia:
 
 ```python
-from personquerybuilder import PersonQuery
+from personquerybuilder import Person
 from enum import Endpoint
 
-duras = PersonQuery(first_name="Marguerite", last_name="Duras")
+duras = Person(first_name="Marguerite", last_name="Duras")
 duras.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])
 duras.query()
 ```

@@ -9,7 +9,6 @@ Author: Valérie Hanoka
 import logging
 from loggingsetup import (
     setup_logging,
-    highlight_str
 )
 
 from utils import (
@@ -22,6 +21,9 @@ import re
 
 RE_NAMESPACE_CHECKER = re.compile(
     '^\s*(?P<abbr>\w+)\s*:\s*<(?P<uri>http://[^>\s]+)>[\s\.]*$')
+
+RE_URI = re.compile(
+    '^(?P<uri>http://.+)(?P<sep>[/#])(?P<attr>[^^#]+)\s*$')
 
 
 class NameSpace(Enum):
@@ -122,15 +124,29 @@ class NameSpace(Enum):
     foaf = u'http://xmlns.com/foaf/0.1/'
 
 
-def get_uri_last_part(uri):
+# def get_uri_last_part(uri):
+#     """
+#     Returns only the last part of an URI. E.g:
+#     >>> get_uri_last_part("http://rdvocab.info/ElementsGr2/dateOfDeath")
+#     >>> dateOfDeath
+#     :param uri: An URI
+#     :return: the last part of the URI
+#     """
+#     return uri.rpartition('/')[-1]
+
+def get_shortened_uri(uri):
+    """ Return a shortened URI if the namespace is known. E.g.:
+    >>> get_shortened_uri("http://xmlns.com/foaf/0.1/surname")
+    >>> "foaf:surname"
     """
-    Returns only the last part of an URI. E.g:
-    >>> get_uri_last_part("http://rdvocab.info/ElementsGr2/dateOfDeath")
-    >>> dateOfDeath
-    :param uri: An URI
-    :return: the last part of the URI
-    """
-    return uri.rpartition('/')[-1]
+    is_uri = RE_URI.match(uri)
+    if is_uri:
+        try:
+            prefix = NameSpace(u'%s%s' % (is_uri.group('uri'), is_uri.group('sep')))
+            uri = u'%s:%s' % (prefix.name, is_uri.group('attr'))
+        except ValueError:
+            pass
+    return uri
 
 def decompose_prefix(prefix):
     """

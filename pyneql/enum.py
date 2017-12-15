@@ -33,7 +33,8 @@ def is_endpoint_multilingual(endpoint):
     :return: True if the endpoint serves multilingual information, False otherwise.
     """
     multilingual_endpoints = [
-        Endpoint.dbpedia
+        Endpoint.dbpedia,
+        Endpoint.dbpedia_fr
         ]
     if endpoint in multilingual_endpoints:
         return True
