@@ -16,42 +16,42 @@ rdf_types = {
         }
 }
 
+# Curated list of predicates giving access to an Named Entity's attribute in the endpoints:
+#        - DBPedia
+# TODO: more endpoints
 
-class PersonName(object):
-    """
-    Curated list of predicates giving access to a person's name in the endpoints:
-        - DBPedia
-        TODO: More endpoints
-    """
+attributes = {
+    u'person': {
+        u'has_first_name': [
+            u'dbpprop:firstname',
+            u'foaf:givenName',
+            u'dbpprop:givenname'
+        ],
+        u'has_last_name': [
+            u'foaf:surname',
+            u'foaf:familyName',
+            u'dbpprop:lastname',
+            u'dbpprop:maidenname',
+            u'dbpprop:surname'
+        ],
+        u'has_full_name': [
+            u'dbpprop:birthname',
+            u'dbpprop:birthnames',
+            u'dbpprop:fullname',
+            u'dbpprop:name',
+            u'foaf:name'
+        ],
+        u'has_alternative_names': [
+            u'dbpprop:altname',
+            u'dbpprop:nickname',
+            u'dbpprop:nicknames',
+            u'dbpedia_owl:alias',
+            u'dbpprop:alias',
+            u'dbpprop:aliases',
+            u'dbpprop:nomAlias',
+            u'dbpprop:othername',
+            u'dbpprop:othernames'
+        ]
+    }
+}
 
-    class AlternativeName(Enum):
-        """ Predicates describing a person's alternative names or nicknames."""
-        altname = u'dbpprop:altname'
-        nickname = u'dbpprop:nickname'
-        nicknames = u'dbpprop:nicknames'
-        owl_alias = u'dbpedia_owl:alias'
-        dbpprop_alias = u'dbpprop:alias'
-        dbpprop_aliases = u'dbpprop:aliases'
-        nomalias = u'dbpprop:nomAlias'
-        othername = u'dbpprop:othername'
-        othernames = u'dbpprop:othernames'
-
-    class FullName(Enum):
-        """ Predicates describing a person's full name."""
-        birthname = u'dbpprop:birthname'
-        birthnames = u'dbpprop:birthnames'
-        fullname = u'dbpprop:fullname'
-        dbpprop_name = u'dbpprop:name'
-        foaf_name = u'foaf:name'
-
-    class FirstName(Enum):
-        """ Predicates describing a person's first name."""
-        firstname = u'dbpprop:firstname'  # TODO: suppr ?
-        givenname = u'dbpprop:givenname'
-
-    class LastName(Enum):
-        """ Predicates describing a person's last name."""
-        foaf_surname = u'foaf:surname'
-        lastname = u'dbpprop:lastname'  # TODO: suppr ?
-        maidenname = u'dbpprop:maidenname'
-        dbpprop_surname = u'dbpprop:surname'
