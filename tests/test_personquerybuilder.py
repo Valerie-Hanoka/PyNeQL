@@ -5,17 +5,22 @@ test_personquerybuilder is part of the project PyNeQL
 Author: Valérie Hanoka
 
 """
+
+from nose.tools import *
+
 from pyneql.person import Person
 from pyneql.enum import (
     Endpoint,
     LanguagesIso6391 as Lang
 )
+from pyneql.utils import QueryException
 
-def test_genericsparqlquery_base_case():
+
+def test_person_base_case():
     """Person - Base case, no issues: Should pass"""
 
     duras = Person(first_name="Marguerite", last_name="Duras", query_language=Lang.French)
-    duras.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])  # Endpoint.dbpedia, Endpoint.dbpedia_fr
+    duras.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])
     duras.query()
 
     expected ={
@@ -55,3 +60,9 @@ def test_genericsparqlquery_base_case():
         u'validated': 1}
 
     assert duras.attributes == expected
+
+
+@raises(QueryException)
+def test_person_incomplete ():
+    """Person - Not enough arguments: Should fail"""
+    Person(first_name="Marguerite", query_language=Lang.French)
