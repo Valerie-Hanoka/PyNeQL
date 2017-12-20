@@ -73,6 +73,19 @@ def test_rdftripletbuilder_prefix_normalization():
     assert not len(diff)
 
 
+def test_rdftripletbuilder_add_prefixes_after_creation():
+    """RDFTriple - RDF prefix declaration after creation: should pass"""
+
+    test1 = RDFTriple(object=u'"foo"')
+    test1.add_prefixes([NameSpace.dawgt, "barbarbar: <http://bar.org/bar/bar/>"])
+    test1.subject = u'barbarbar:foofoofoo'
+
+    assert test1.__str__() == u'barbarbar:foofoofoo ?p_%i "foo" .' % test1.class_counter
+    diff = set(test1.prefixes) - set([NameSpace.dawgt, NameSpace.barbarbar])
+    assert not len(diff)
+
+
+
 @raises(NameSpaceException)
 def test_rdftripletbuilder_prefix_inconsistencies1():
         """RDFTriple - Inconsistency between
@@ -90,6 +103,14 @@ def test_rdftripletbuilder_prefix_inconsistencies2():
         rdf = RDFTriple(prefixes=["xsd: <http://foo.org/bar/1.1/buz.owl#>"])
 
 
+@raises(NameSpaceException)
+def test_rdftripletbuilder_add_prefixes_after_creation_inconsistencies():
+    """RDFTriple - bad RDF prefix declaration: should fail"""
+
+    test1 = RDFTriple(object=u'"foo"')
+    test1.add_prefix("prefix: bar, abbr: <http://bar.org/bar/bar/>")
+
+
 def test_rdftripletbuilder_literal_language():
     """RDFTriple - Literal with language: should pass"""
 
@@ -105,3 +126,12 @@ def test_rdftripletbuilder_literal_language():
 
     test4 = RDFTriple(object=u'"1924"', language=Lang.Albanian)
     assert test4.__str__(with_language=True) == test4.__str__()
+
+
+def test_get_variables():
+    """RDFTriple - Literal with language: should pass"""
+
+    rdf = RDFTriple()
+    truth = set([u'?%s_%i' % (role, rdf.class_counter) for role in "sop"])
+    diff = set(rdf.get_variables()) - truth
+    assert not len(diff)

@@ -50,7 +50,6 @@ class GenericSPARQLQuery(object):
         self.limit = u''
         self.query = self.template_query
         self.results = []
-        self.language = None
 
     #  -------  Query preparation  -------#
     def add_result_arguments(self, arguments):
@@ -128,13 +127,6 @@ class GenericSPARQLQuery(object):
         :return:
         """
         map(self.add_endpoint, endpoints)
-
-    def set_language(self, language):
-        """ Indiquates the language of the query."""
-        if isinstance(language, Lang):
-            raise QueryException(
-                u" Bad language type. Must be an enum.LanguagesIso6391, got %s instead." % type(language))
-        self.language = language
 
     def set_limit(self, limit):
         """ Limits the number of results the query returns."""

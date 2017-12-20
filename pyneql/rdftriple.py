@@ -151,17 +151,22 @@ class RDFTriple(object):
 
     def add_prefix(self, prefix):
         """ A prefix can be added if it is of the type vocabulary.NameSpace or
-        if it is a legal SPARQL query prefix declaration. """
+        if it is a legal SPARQL query prefix declaration.
+        >>> my_triple = RDFTriple(object="foo")
+        >>> my_triple.add_prefix(NameSpace.dawgt)
+        >>> my_triple.add_prefix("barbarbar: <http://bar.org/bar/bar/> .")
+
+        """
 
         if not prefix:
-            return
+            raise NameSpaceException(u"Prefix issue: can't add undefined prefix.")
 
         # The prefix is already a vocabulary.NameSpace
-        if type(prefix) == NameSpace:
+        if isinstance(prefix, NameSpace):
             if prefix not in self.prefixes:
                 self.prefixes.append(prefix)
 
-        elif type(prefix) == str:
+        elif isinstance(prefix, str) or isinstance(prefix, unicode):
 
             # If the prefix is not normalised yet, we normalise it
             abbr, ns = decompose_prefix(prefix)
@@ -173,11 +178,11 @@ class RDFTriple(object):
                 if consistent_namespace not in self.prefixes:
                     self.prefixes.append(consistent_namespace)
 
-                else:
-                    # Unknown namespace, adding it to the vocabulary
-                    new_namespace = add_namespace(abbr, ns)
-                    self.prefixes.append(new_namespace)
-
+            else:
+                # Unknown namespace, adding it to the vocabulary
+                new_namespace = add_namespace(abbr, ns)
+                self.prefixes.append(new_namespace)
+                logging.info("Adding prefix %s to NameSpaces vocabulary." % new_namespace)
 
         else:
             raise NameSpaceException(
@@ -192,12 +197,5 @@ class RDFTriple(object):
         """
         return [e for e in (self.subject, self.object, self.predicate) if e[0] == u'?']
 
-    # def set_language(self, language):
-    #     """If the query is prepared for a multilingual endpoint, we must postfix
-    #     literal text information with its language
-    #     E.g:
-    #     >>> '?person ?has_last_name "Obama".'
-    #      becomes
-    #     >>>'?person ?has_last_name "Obama"@en.'
-    #     """
+
 
