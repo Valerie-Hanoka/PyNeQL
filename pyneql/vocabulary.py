@@ -9,7 +9,7 @@ Author: Valérie Hanoka
 from aenum import Enum
 
 rdf_types = {
-    u'person': {
+    u'Person': {
         "foaf:Person",
         "dbpedia_owl:Person",
         "schemaorg:Person"
@@ -21,7 +21,7 @@ rdf_types = {
 # TODO: more endpoints
 
 attributes = {
-    u'person': {
+    u'Person': {
         u'has_first_name': [
             u'dbpprop:firstname',
             u'foaf:givenName',
