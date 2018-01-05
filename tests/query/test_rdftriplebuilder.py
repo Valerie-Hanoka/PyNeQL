@@ -8,17 +8,10 @@ Author: Valérie Hanoka
 
 from nose.tools import *
 
-from pyneql.utils import (
-    NameSpaceException
-)
-
-from pyneql.rdftriple import (
-    RDFTriple
-)
-
-from pyneql.enum import LanguagesIso6391 as Lang
-
-from pyneql.namespace import NameSpace, add_namespace
+from pyneql.utils.utils import NameSpaceException
+from pyneql.query.rdftriple import RDFTriple
+from pyneql.utils.enum import LanguagesIso6391 as Lang
+from pyneql.utils.namespace import NameSpace, add_namespace
 
 #---------------------------------------
 #          RDF Triples

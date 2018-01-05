@@ -7,20 +7,19 @@ Author: Valérie Hanoka
 """
 
 import logging
-from loggingsetup import (
+from pyneql.log.loggingsetup import (
     setup_logging,
     highlight_str
 )
 
-from utils import QueryException
+from pyneql.utils.utils import QueryException
 
-from enum import (
+from pyneql.utils.endpoints import (
     Endpoint,
-    LanguagesIso6391 as Lang,
     is_endpoint_multilingual
 )
 
-from namespace import (
+from pyneql.utils.namespace import (
     NameSpace,
     decompose_prefix,
     get_consistent_namespace,
@@ -44,11 +43,12 @@ class GenericSPARQLQuery(object):
 
     def __init__(self):
         self.prefixes = set([])  # a set of vocabulary.prefixes
+        self.languages = set([])  # a set of enum.LanguagesIso6391 the query literals should be in (and retrieve)
         self.result_arguments = []  # a list of string representing variables. Ex: "?name"
         self.endpoints = set([])  # SPARQL endpoints where the query should be sent
         self.triples = []  # a list of RDFTriples
         self.limit = u''
-        self.query = self.template_query
+        self.queries = {}
         self.results = []
 
     #  -------  Query preparation  -------#
@@ -79,8 +79,9 @@ class GenericSPARQLQuery(object):
         self.triples.append(triple)
         for p in triple.prefixes:
             self.prefixes.add(p)
-            logging.info("Adding triple (%s) to query." %
-                         highlight_str(triple, highlight_type='triple'))
+
+        self.languages.add(triple.language)
+        logging.debug("Adding triple (%s) to query." % highlight_str(triple, highlight_type='triple'))
 
     def add_prefix(self, prefix):
         """ Convert a string 'abbr: <url>' into a NameSpace, and
@@ -159,8 +160,8 @@ class GenericSPARQLQuery(object):
             logging.warning("No endpoint were set - Using DEFAULT (%s)" %
                             highlight_str(Endpoint.DEFAULT.value))
 
-    def _querify(self, display_lang=False):
-        """ Build a well formed SPARQL query with the given arguments. """
+    def _querify(self, endpoint=Endpoint.DEFAULT):
+        """ Build a well formed SPARQL query with the given arguments for all the endpoints. """
 
         prefix_strs = (u'PREFIX %s: <%s>' % (prefix.name, prefix.value) for prefix in self.prefixes)
 
@@ -171,10 +172,21 @@ class GenericSPARQLQuery(object):
         arguments = {
             u'prefix': u' '.join(prefix_strs),
             u'result_arguments': result_arguments,
-            u'triples': u' '.join((t.__str__(display_lang) for t in self.triples)),
+            u'triples': u' '.join((
+                t.__str__(is_endpoint_multilingual(endpoint))
+                for t in self.triples
+                if endpoint not in t.forbidden_endpoints)),
             u'limit': self.limit,
         }
-        self.query = self.template_query % arguments
+
+        # Wikidata specific  magic text to get the item as well as its label
+        if endpoint == Endpoint.wikidata:
+            arguments[u'triples'] = \
+                u'SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],%s". } %s' % (
+                    u', '.join([l.value for l in self.languages]),
+                    arguments[u'triples'])
+
+        self.queries[endpoint] = self.template_query % arguments
 
     #  -------  Query launch and response processing  -------#
     def _send_requests(self):
@@ -190,17 +202,19 @@ class GenericSPARQLQuery(object):
 
             # Depending on the endpoint, queries may be slightly different, especially
             # concerning language information of literals.
-            self._querify(display_lang=is_endpoint_multilingual(endpoint))
+            self._querify(endpoint)
+            if not self.queries.get(endpoint, False):
+                raise QueryException(u"No query was generated for endpoint %s." % str(endpoint))
 
-            logging.info("Sending query %s to endpoint %s ..." % (
-                highlight_str(self.query, highlight_type='query'),
+            logging.debug("Sending query %s to endpoint %s ..." % (
+                highlight_str(self.queries.get(endpoint, "{}"), highlight_type='query'),
                 endpoint.value))
 
             headers = {
                 'Accept': 'application/json'
             }
             params = {
-                "query": self.query,
+                "query": self.queries.get(endpoint, "{}"),
                 # "default-graph-uri": endpoint.value  # nothing after .xyz
             }
             response = requests.get(endpoint.value, params=params, headers=headers)
@@ -209,7 +223,7 @@ class GenericSPARQLQuery(object):
                 responses.append(response)
             else:
                 logging.warning("Query %s returned http code %s when sent to %s." % (
-                    highlight_str(self.query, highlight_type='query'),
+                    highlight_str(self.queries.get(endpoint, "{}"), highlight_type='query'),
                     highlight_str(response.status_code),
                     endpoint.value))
         return responses

@@ -9,11 +9,12 @@ Author: Valérie Hanoka
 from nose.tools import *
 
 from fuzzywuzzy import fuzz
-from pyneql.querybuilder import GenericSPARQLQuery
-from pyneql.rdftriple import RDFTriple
-from pyneql.namespace import NameSpace
-from pyneql.enum import Endpoint
-from pyneql.utils import QueryException
+
+from pyneql.query.querybuilder import GenericSPARQLQuery
+from pyneql.query.rdftriple import RDFTriple
+from pyneql.utils.namespace import NameSpace
+from pyneql.utils.endpoints import Endpoint
+from pyneql.utils.utils import QueryException
 
 
 
@@ -55,15 +56,16 @@ def test_genericsparqlquery_base_case():
     assert query.limit == u'LIMIT 10'
 
     truth_query = u'PREFIX foaf: <http://xmlns.com/foaf/0.1/> ' \
-                  u'PREFIX dbpedia_owl: <http://dbpedia.org/ontology/> ' \
+                  u'PREFIX dbo: <http://dbpedia.org/ontology/> ' \
                   u'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ' \
-                  u'SELECT * WHERE { ' \
-                  u'?person rdfs:label "Simone de Beauvoir"@fr . ' \
-                  u'?person dbpedia_owl:birthDate ?birthdate . ' \
-                  u'?person foaf:gender ?gender . ' \
-                  u'} LIMIT 3'
+                  u'SELECT * WHERE {' \
+                  u' ?person rdfs:label "Simone de Beauvoir"@fr .' \
+                  u' ?person dbo:birthDate ?birthdate .' \
+                  u' ?person foaf:gender ?gender . ' \
+                  u'} ' \
+                  u'LIMIT 10'
 
-    ratio = fuzz.ratio(query.query, truth_query)
+    ratio = fuzz.ratio(query.queries[Endpoint.DEFAULT], truth_query)
     assert ratio > 98
 
     truth_results = [

@@ -8,12 +8,11 @@ Author: Valérie Hanoka
 
 from nose.tools import *
 
-from pyneql.person import Person
-from pyneql.enum import (
-    Endpoint,
-    LanguagesIso6391 as Lang
-)
-from pyneql.utils import QueryException
+from pyneql.ontology.person import Person
+from pyneql.utils.enum import LanguagesIso6391 as Lang
+from pyneql.utils.endpoints import Endpoint
+
+from pyneql.utils.utils import QueryException
 
 
 def test_person_base_case():
@@ -57,8 +56,10 @@ def test_person_base_case():
         u'rdagroup2elements:placeOfBirth': u'Gia Dinh (Vietnam)',
         u'rdagroup2elements:placeOfDeath': u'Paris',
         u'rdf:type': u'foaf:Person',
+        u'skos:exactMatch': u'http://data.bnf.fr/ark:/12148/cb119013498#foaf:Person',
         u'validated': 1}
 
+    import pprint; print(duras.query_builder.queries)
     assert duras.attributes == expected
 
 
@@ -66,3 +67,11 @@ def test_person_base_case():
 def test_person_incomplete ():
     """Person - Not enough arguments: Should fail"""
     Person(first_name="Marguerite", query_language=Lang.French)
+
+
+def test_person_base_case_wikidata():
+    """Person - wikidata - Base case, no issues: Should pass"""
+
+    duras = Person(first_name="Marguerite", last_name="Duras", query_language=Lang.French)
+    duras.add_query_endpoint(Endpoint.wikidata)
+    duras.query()

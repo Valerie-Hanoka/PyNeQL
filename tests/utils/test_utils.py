@@ -6,7 +6,7 @@ Author: Valérie Hanoka
 
 """
 
-from pyneql.utils import (
+from pyneql.utils.utils import (
     merge_two_dicts_in_lists,
     merge_two_dicts_in_sets,
     normalize_str

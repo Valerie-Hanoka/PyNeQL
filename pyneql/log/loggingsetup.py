@@ -44,8 +44,8 @@ def highlight_str(s, highlight_type=None):
     :return: an highlighted string
     """
     if highlight_type == 'query':
-        return "\x1b[31;1m %s \x1b[0m" % str(s)
+        return "\x1b[31;1m %s \x1b[0m" % s
     elif highlight_type == 'triple':
-        return "\x1b[32;1m %s \x1b[0m" % str(s)
+        return "\x1b[32;1m %s \x1b[0m" % s
     else:
-        return "\x1b[34;1m %s \x1b[0m" % str(s)
+        return "\x1b[34;1m %s \x1b[0m" % s
