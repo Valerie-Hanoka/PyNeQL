@@ -12,7 +12,10 @@ from pyneql.log.loggingsetup import (
     highlight_str
 )
 
-from pyneql.utils.utils import QueryException
+from pyneql.utils.utils import (
+    QueryException,
+    normalize_str
+)
 
 from pyneql.utils.endpoints import (
     Endpoint,
@@ -26,6 +29,7 @@ from pyneql.utils.namespace import (
     add_namespace
 )
 
+from pyneql.utils.wikidataproperties import translate_to_legible_wikidata_properties
 import requests
 import json
 
@@ -228,6 +232,11 @@ class GenericSPARQLQuery(object):
                     endpoint.value))
         return responses
 
+    def _normalize_result(self, result):
+
+        result = translate_to_legible_wikidata_properties(result)
+        return normalize_str(result)
+
     def _compute_results_from_response(self, http_responses):
         """Given the http response corresponding to self.query, this method
         stores in self.results the list of list of subject, predicates and object
@@ -249,8 +258,13 @@ class GenericSPARQLQuery(object):
         results = [json.loads(r.content)[u'results'][u'bindings'] for r in http_responses]
         for result in results:
             self.results += map(
-                lambda d: [(k, v[u'value']) for k, v in d.items()],
+                lambda d: [
+                    (k, self._normalize_result(v[u'value']))
+                    for k, v
+                    in d.items()
+                ],
                 result)
+
 
     def commit(self):
         """Send the current query to the specified SPARQL endpoints and stores the

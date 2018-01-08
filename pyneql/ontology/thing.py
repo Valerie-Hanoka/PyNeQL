@@ -13,7 +13,7 @@ from pyneql.log.loggingsetup import (
 from pyneql.query.querybuilder import GenericSPARQLQuery
 from pyneql.utils.vocabulary import (
     rdf_types,
-    attributes
+    attributes as voc_attributes
 )
 
 from pyneql.utils.enum import (
@@ -57,7 +57,7 @@ class Thing(object):
             raise QueryException("The language of the query must be of type enum.LanguagesIso6391.")
 
         self.rdf_types = rdf_types[class_name]
-        self.thing_attributes = attributes[class_name]
+        self.thing_attributes = voc_attributes[class_name]
 
         self.args = {
             'subject': u'?%s' % class_name,
@@ -128,14 +128,18 @@ class Thing(object):
 
     def get_external_ids(self):
         """
-        ark
-        viaf
-        d - nb.info  # dnb (Deutschen Nationalbibliothek)
-        wikidata.org
-        idref
+        Get the external ids of the Thing.
         """
         ids = {}
-        external_ids = self.attributes.get(u'owl:sameAs').union(self.attributes.get(u'skos:exactMatch'))
+
+        same_as = self.attributes.get(u'owl:sameAs')
+        same_as = same_as if isinstance(same_as, set) else set([same_as])
+
+        exact_match = self.attributes.get(u'skos:exactMatch')
+        exact_match = exact_match if isinstance(exact_match, set) else set([exact_match])
+
+        external_ids = same_as.union(exact_match)
+
         for external_id in external_ids:
             if u'ark' in external_id:
                 ids[u'ark'] = external_id

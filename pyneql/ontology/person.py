@@ -23,8 +23,9 @@ from pyneql.utils.utils import (
     contains_a_date,
     merge_two_dicts_in_sets
 )
-from datetime import datetime
 
+from dateutil.parser import parse as parsedate
+from itertools import chain
 
 class Person(Thing):
     """
@@ -86,15 +87,18 @@ class Person(Thing):
             )
         )
 
-        # Adding query delimiters
+        # Adding query delimiters, that are the parameters given for query
+        # (i.e stored in the instance variables begining with "has_").
+        # For instance, Person(full_name="Jemaine Clement") will have its query
+        # restrained to elements satisfying the triplet '?Person ?has_full_name "Jemaine Clement."'.
         entities_names = [e for e in self.__dict__.keys() if e.startswith('has_') and self.__dict__.get(e, False)]
         for entity_name in entities_names:
             tmp = self.__dict__.get(entity_name, None)
             if tmp:
                 try:
-                    tmp = int(tmp)
-                    obj = tmp
-                except:
+                    # For dates elements, the triplet literal must be formatted without quotes
+                    obj = int(tmp)
+                except ValueError:
                     obj = u'"%s"' % tmp
             else:
                 obj = u'?%s' % entity_name
@@ -131,37 +135,36 @@ class Person(Thing):
             if life_event in k.lower():
                 infos = v if isinstance(v, set) else set([v])
                 for info in infos:
-                        if contains_a_date(info):
-                            if already_contains_birth_date:
-                                continue
-                            try:
-                                split = info.count('-')
-                                if split == 2:
-                                    # Full birth date
-                                    # Keeping only this date information, as it is the
-                                    # most informative
-                                    biography_info['date'] = datetime.strptime(info, '%Y-%m-%d')
-                                    already_contains_birth_date = 1
-                                    continue
-                                else:
-                                    # Partial birth date
-                                    if split == 1:
-                                        # Only year and month
-                                        info = datetime.strptime(info, '%Y-%m')
-                                    else:
-                                        # Only year
-                                        info = datetime.strptime(info, '%Y')
+                    if info.count('-') > 4:
+                        continue
+                    if contains_a_date(info):
+                        if already_contains_birth_date:
+                            continue
+                        try:
+                            biography_info['date'] = parsedate(info)
+                            already_contains_birth_date = 1
+                        except ValueError:
+                            # No available date info to parse
+                            continue
+                    elif 'place' in k:
+                        biography_info = merge_two_dicts_in_sets(
+                            biography_info,
+                            {'place': info})
+                    elif 'name' in k:
+                        biography_info = merge_two_dicts_in_sets(
+                            biography_info,
+                            {'name': info})
+                    elif 'cause' in k or 'manner' in k:
+                        biography_info = merge_two_dicts_in_sets(
+                            biography_info,
+                            {'cause/manner': info})
 
-                                    biography_info = merge_two_dicts_in_sets(
-                                        biography_info,
-                                        {'date': info})
-                            except ValueError:
-                                # No available date info to parse
-                                continue
-                        else:
-                            biography_info = merge_two_dicts_in_sets(
-                                biography_info,
-                                {'place': info})
+                    else:
+                        biography_info = merge_two_dicts_in_sets(
+                            biography_info,
+                            {'other': info})
+
+
         return biography_info
 
     def get_death_info(self):
@@ -185,19 +188,50 @@ class Person(Thing):
           - ♀ if the person is labelled as a woman
           - ♂ if the person is labelled as a man
           - ∅ if the gender information is unavailable."""
-        gender = self.attributes.get(u'foaf:gender').pop()
-        if gender is u'female':
-            return u'♀'
-        elif gender is u'male':
-            return u'♂'
-        else:
-            return u'∅'
 
+        # Wikidata
 
+        for info_key, info in self.attributes.iteritems():
+            if 'gender' in info_key.lower():
+                genders = {
+                    u'female': u'F',
+                    u'Q6581072': u'F',
+                    u'male': u'M',
+                    u'Q6581097': u'M',
+                    u'Q1052281': u'MtF',
+                    u'Q2449503': u'FtM',
+                    u'Q1097630': u'intersex',
+                }
+                gender = next(iter(info)) if isinstance(info, set) else info
+                return genders.get(gender[gender.find(':') + 1:], u'unknown')
+        return u'unknown'
 
-    def get_normalized_name(self):
+    def get_names(self):
+        """This function returns all information that is available in the linked data
+         about the name of the person (e.g: birth name, family name, name in the native language,...).
+        :return: a dict of information concerning the names of the person.
         """
 
-        :return:
-        """
-        pass
+        # Idiomatic elements
+        # A dirty way to get all the names that does not contain 'name' in their names
+        idiomatic_name_keys = {
+            v for v in chain.from_iterable([n for k, n in self.thing_attributes.items() if 'name' in k])
+            if 'name' not in v
+        }
+
+        unfiltered_names = {
+            k: v for k, v in self.attributes.iteritems()
+            if 'name' in k or k in idiomatic_name_keys
+        }
+        names = {}
+
+        for name_type, name in unfiltered_names.items():
+            if isinstance(name, set):
+                filtered = filter(lambda x: x.count('-') < 5, name)
+                if filtered:
+                    names[name_type] = filtered if len(filtered)>1 else filtered.pop()
+            else:
+                if name.count('-') < 5:
+
+                    names[name_type] = name
+        return names

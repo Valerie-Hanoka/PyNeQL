@@ -14,6 +14,9 @@ from pyneql.utils.endpoints import Endpoint
 
 from pyneql.utils.utils import QueryException
 
+import datetime
+import dateutil.tz
+
 
 def test_person_base_case():
     """Person - Base case, no issues: Should pass"""
@@ -63,15 +66,41 @@ def test_person_base_case():
     assert duras.attributes == expected
 
 
+def test_person_wikidata():
+    """Person - Wikidata: Should pass"""
+
+    # In Chinese
+    vivian_qu = Person(full_name=u'文晏', query_language=Lang.Chinese)
+    vivian_qu.add_query_endpoint(Endpoint.wikidata)
+    vivian_qu.query()
+    assert vivian_qu.attributes.get(u'owl:sameAs', None) == u'wd:Q17025364'
+
+    # French - Getting various attributes
+    duras = Person(full_name=u'Marguerite Duras', query_language=Lang.French)
+    duras.add_query_endpoint(Endpoint.wikidata)
+    duras.query()
+
+    expected_birth = {
+        'date': datetime.datetime(1914, 4, 4, 0, 0, tzinfo=dateutil.tz.tzutc()),
+        'name': u'Marguerite Germaine Marie Donnadieu',
+        'place': u'wd:Q1854'
+    }
+
+    print(duras.get_death_info())
+    assert duras.get_birth_info() == expected_birth
+
+    expected_death = {
+        'cause/manner': set([u'wd:Q372701', u'wd:Q3739104']),
+        'date': datetime.datetime(1996, 3, 3, 0, 0, tzinfo=dateutil.tz.tzutc()),
+        'place': u'wd:Q90'
+    }
+    assert duras.get_death_info() == expected_death
+    assert duras.get_gender() == u'F'
+
+
 @raises(QueryException)
-def test_person_incomplete ():
+def test_person_incomplete():
     """Person - Not enough arguments: Should fail"""
     Person(first_name="Marguerite", query_language=Lang.French)
 
-
-def test_person_base_case_wikidata():
-    """Person - wikidata - Base case, no issues: Should pass"""
-
-    duras = Person(first_name="Marguerite", last_name="Duras", query_language=Lang.French)
-    duras.add_query_endpoint(Endpoint.wikidata)
-    duras.query()
+# TODO: Test each endpoint independently. Test info extraction methods too.
