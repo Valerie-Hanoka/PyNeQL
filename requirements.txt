@@ -4,4 +4,4 @@ sphinx
 aenum
 requests
 fuzzywuzzy
-
+python-dateutil
