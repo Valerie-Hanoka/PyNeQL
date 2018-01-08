@@ -6,23 +6,22 @@ Author: Valérie Hanoka
 
 """
 
-import logging
-from loggingsetup import (
+from pyneql.log.loggingsetup import (
     setup_logging,
 )
 
-from querybuilder import GenericSPARQLQuery
-from vocabulary import (
+from pyneql.query.querybuilder import GenericSPARQLQuery
+from pyneql.utils.vocabulary import (
     rdf_types,
-    attributes
+    attributes as voc_attributes
 )
 
-from enum import (
+from pyneql.utils.enum import (
     LanguagesIso6391 as Lang,
 )
 
-from namespace import get_shortened_uri
-from utils import (
+from pyneql.utils.namespace import get_shortened_uri
+from pyneql.utils.utils import (
     QueryException,
     merge_two_dicts_in_sets
 )
@@ -58,7 +57,7 @@ class Thing(object):
             raise QueryException("The language of the query must be of type enum.LanguagesIso6391.")
 
         self.rdf_types = rdf_types[class_name]
-        self.thing_attributes = attributes[class_name]
+        self.thing_attributes = voc_attributes[class_name]
 
         self.args = {
             'subject': u'?%s' % class_name,
@@ -98,6 +97,7 @@ class Thing(object):
         things = {}
 
         for result in self.query_builder.results:
+
             dict_results = {arg_name: get_shortened_uri(arg_value) for (arg_name, arg_value) in result}
             thing = dict_results.pop(self.args['subject'][1:], None)
 
@@ -111,10 +111,45 @@ class Thing(object):
             shortened_result = {dict_results[u'pred']: dict_results[u'obj']}
             things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
 
+        # Wikimedia... (╯°□°）╯︵ ┻━┻ Accepting wikimedia elements that correspond to an entity because
+        # what we will have TODO is to filter them properly.
+        unfiltered_wikimedia_things = [t for t in things.keys() if 'wd:' in t and not t == u'wd:Q12949604']
+        for unfiltered_wikimedia_thing in unfiltered_wikimedia_things:
+            things[unfiltered_wikimedia_thing]["validated"] = 1
+
         # Removing wrong things and adding the attributes of the correct thing
         for thing, thing_attribute in things.items():
             if not thing_attribute.get('validated', False):
                 things.pop(thing)
             else:
                 self.attributes = merge_two_dicts_in_sets(self.attributes, {u'owl:sameAs': thing})
+                self.attributes = merge_two_dicts_in_sets(self.attributes, {u'skos:exactMatch': thing}) # Identity
                 self.attributes = merge_two_dicts_in_sets(self.attributes, thing_attribute)
+
+    def get_external_ids(self):
+        """
+        Get the external ids of the Thing.
+        """
+        ids = {}
+
+        same_as = self.attributes.get(u'owl:sameAs')
+        same_as = same_as if isinstance(same_as, set) else set([same_as])
+
+        exact_match = self.attributes.get(u'skos:exactMatch')
+        exact_match = exact_match if isinstance(exact_match, set) else set([exact_match])
+
+        external_ids = same_as.union(exact_match)
+
+        for external_id in external_ids:
+            if u'ark' in external_id:
+                ids[u'ark'] = external_id
+            elif u'viaf' in external_id:
+                ids[u'viaf'] = external_id
+            elif u'd-nb.info' in external_id:
+                ids[u'Deutschen_Nationalbibliothek'] = external_id
+            elif u'wikidata.org' in external_id:
+                ids[u'wikidata'] = external_id
+            elif u'idref' in external_id:
+                ids[u'idref'] = external_id
+
+        return ids

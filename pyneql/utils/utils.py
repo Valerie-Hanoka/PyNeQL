@@ -6,6 +6,9 @@ Author: Valérie Hanoka
 
 """
 from copy import deepcopy
+from unicodedata import normalize
+
+import re
 
 # ----  Exceptions ---- #
 class QueryException(Exception):
@@ -99,8 +102,15 @@ def normalize_str(s):
     :param s: a string
     :return: the unicode normalised version of s
     """
-    s = s.strip()
+    s = unicode(s.strip())
+    s = normalize('NFC', s)
     return u' '.join(s.split())
 
 
-
+RE_CONTAINS_A_DATE = re.compile('^[0-9\-]+[0-9TZ:\-]*$')
+def contains_a_date(s):
+    """ Detects if a string contains a date.
+    :param s: a string
+    :return: True if s contains a date, False otherwise.
+    """
+    return RE_CONTAINS_A_DATE.search(s)
