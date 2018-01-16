@@ -27,6 +27,8 @@ from pyneql.utils.utils import (
     merge_two_dicts_in_sets
 )
 
+from pyneql.utils.utils import normalize_str
+
 from functools import reduce
 
 
@@ -155,7 +157,7 @@ class Thing(object):
         # Adding query delimiters, that are the parameters given for query
         # (i.e stored in the instance variables begining with "has_").
         for entity_name in entities_names:
-            entity_value = self.__dict__.get(entity_name, None)
+            entity_value = normalize_str(self.__dict__.get(entity_name, None))
             # The instance has an instantiated value for a 'has_…' variable. This value will be the
             # object of an RDF triplet.
             if entity_value:
