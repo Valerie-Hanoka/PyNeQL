@@ -135,6 +135,7 @@ class NameSpace(Enum):
     wdref = u'http://www.wikidata.org/reference/'
     wds = u'http://www.wikidata.org/entity/statement/'
     wdt = u'http://www.wikidata.org/prop/direct/'
+    wdt_o = u'http://www.wikidata.org/ontology#'
     wdv = u'http://www.wikidata.org/value/'
     wiki_fr = u'http://fr.wikipedia.org/wiki/'
     wikibase = u'http://wikiba.se/ontology#'

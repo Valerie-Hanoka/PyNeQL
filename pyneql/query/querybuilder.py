@@ -43,7 +43,7 @@ class GenericSPARQLQuery(object):
      It is used to build SPARQL queries iteratively."""
 
     setup_logging()
-    template_query = u'%(prefix)s SELECT %(result_arguments)s WHERE { %(triples)s } %(limit)s'
+    template_query = u'%(prefix)s SELECT DISTINCT %(result_arguments)s WHERE { %(triples)s } %(limit)s'
 
     def __init__(self):
         self.prefixes = set([])  # a set of vocabulary.prefixes
@@ -51,7 +51,8 @@ class GenericSPARQLQuery(object):
         self.result_arguments = []  # a list of string representing variables. Ex: "?name"
         self.endpoints = set([])  # SPARQL endpoints where the query should be sent
         self.triples = []  # a list of RDFTriples
-        self.limit = u''
+        self.alternate_triples = []  # a list of sets of alternative triples
+        self.limit = 'LIMIT 1500'  # Arbitrary high limit in order to avoid querying the whole DB
         self.queries = {}
         self.results = []
 
@@ -86,6 +87,22 @@ class GenericSPARQLQuery(object):
 
         self.languages.add(triple.language)
         logging.debug("Adding triple (%s) to query." % highlight_str(triple, highlight_type='triple'))
+
+    def add_query_alternative_triples(self, triples_set):
+        """
+        Add a set of RDFtriples to the query using SPARQL 'UNION' in order to
+        express alternatives.
+        { x } UNION { y }, will match either x or y, or both.
+        See https://www.w3.org/TR/rdf-sparql-query/ for more details.
+        """
+        self.alternate_triples.append(triples_set)
+        for triple in triples_set:
+            for p in triple.prefixes:
+                self.prefixes.add(p)
+            self.languages.add(triple.language)
+            logging.debug("Adding alternate triple (%s) to query." %
+                          highlight_str(triple, highlight_type='triple'))
+
 
     def add_prefix(self, prefix):
         """ Convert a string 'abbr: <url>' into a NameSpace, and
@@ -173,6 +190,7 @@ class GenericSPARQLQuery(object):
             u'*' if len(self.result_arguments) == 0 \
             else u' '.join(self.result_arguments)
 
+
         arguments = {
             u'prefix': u' '.join(prefix_strs),
             u'result_arguments': result_arguments,
@@ -183,7 +201,14 @@ class GenericSPARQLQuery(object):
             u'limit': self.limit,
         }
 
-        # Wikidata specific  magic text to get the item as well as its label
+        # Adding alternative triples
+        for triples_set in self.alternate_triples:
+            query_chunk = u' UNION '.join([
+                u'{ %s }' % t.__str__(is_endpoint_multilingual(endpoint)).strip('.')
+                for t in triples_set])+u' . '
+            arguments[u'triples'] = u'%s %s' % (arguments[u'triples'], query_chunk)
+
+        # Wikidata specific text to get the item as well as its label
         if endpoint == Endpoint.wikidata:
             arguments[u'triples'] = \
                 u'SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],%s". } %s' % (
@@ -191,6 +216,13 @@ class GenericSPARQLQuery(object):
                     arguments[u'triples'])
 
         self.queries[endpoint] = self.template_query % arguments
+
+    def reset_queries(self):
+        """
+        Resets the queries already constructed.
+        :return:
+        """
+        self.queries = {}
 
     #  -------  Query launch and response processing  -------#
     def _send_requests(self):
@@ -221,7 +253,12 @@ class GenericSPARQLQuery(object):
                 "query": self.queries.get(endpoint, "{}"),
                 # "default-graph-uri": endpoint.value  # nothing after .xyz
             }
-            response = requests.get(endpoint.value, params=params, headers=headers)
+
+
+
+            response = requests.post(endpoint.value, params=params, headers=headers)
+            # using POST instead of GET because it is slightly more efficient for big
+            # queries (POST queries are not cached)
 
             if response.status_code == 200:
                 responses.append(response)

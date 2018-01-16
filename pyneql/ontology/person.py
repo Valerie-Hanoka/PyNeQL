@@ -12,16 +12,15 @@ from pyneql.log.loggingsetup import (
 )
 
 
-from pyneql.query.rdftriple import RDFTriple
 from pyneql.utils.enum import (
     LanguagesIso6391 as Lang,
 )
 
-from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.utils import (
     QueryException,
     contains_a_date,
-    merge_two_dicts_in_sets
+    merge_two_dicts_in_sets,
+    normalize_str
 )
 
 from dateutil.parser import parse as parsedate
@@ -43,84 +42,23 @@ class Person(Thing):
 
     def __init__(self,
                  full_name=None, last_name=None, first_name=None,
-                 birth_year=None, death_year=None,
+                 # birth_year=None, death_year=None,
                  query_language=Lang.DEFAULT,
                  endpoints=None,  # SPARQL endpoints where the query should be sent
                  class_name=u'Person'
                  ):
 
-        if not (full_name or ((first_name or birth_year or death_year) and last_name)):
+        if not (full_name or (first_name and last_name)):  #  or birth_year or death_year
             raise QueryException("There is not enough information provided to find this person."
                                  " Provide full name information.")
 
-        self.has_full_name = full_name
-        self.has_last_name = last_name
-        self.has_first_name = first_name
-        self.has_birth_year = birth_year
-        self.has_death_year = death_year
+        self.has_full_name = normalize_str(full_name) if full_name else None
+        self.has_last_name = normalize_str(last_name) if last_name else None
+        self.has_first_name = normalize_str(first_name) if first_name else None
+        # self.has_birth_year = birth_year
+        # self.has_death_year = death_year
         super(Person, self).__init__(query_language=query_language, endpoints=endpoints, class_name=class_name)
 
-    def _build_query(self):
-
-        # Restricting the query to only Person elements
-        # For all Endpoints except Wikidata, it is simple and efficient to
-        # keep only entities that are of type foaf:Person.
-        # Wikidata does not respond well to that triple, so for this endpoint only,
-        # we use predicate wdt:P31 and value wd:Q5 (human being)."
-        self.query_builder.add_query_triple(
-            RDFTriple(
-                subject=self.args['subject'],
-                predicate=u'wdt:P31',
-                object=u'wd:Q5',
-                keep_only_endpoints=[Endpoint.wikidata],
-                language=self.query_language
-            )
-        )
-
-        self.query_builder.add_query_triple(
-            RDFTriple(
-                subject=self.args['subject'],
-                predicate=u'a',
-                object=u'foaf:Person',
-                excluded_endpoints=[Endpoint.wikidata],
-                language=self.query_language
-            )
-        )
-
-        # Adding query delimiters, that are the parameters given for query
-        # (i.e stored in the instance variables begining with "has_").
-        # For instance, Person(full_name="Jemaine Clement") will have its query
-        # restrained to elements satisfying the triplet '?Person ?has_full_name "Jemaine Clement."'.
-        entities_names = [e for e in self.__dict__.keys() if e.startswith('has_') and self.__dict__.get(e, False)]
-        for entity_name in entities_names:
-            tmp = self.__dict__.get(entity_name, None)
-            if tmp:
-                try:
-                    # For dates elements, the triplet literal must be formatted without quotes
-                    obj = int(tmp)
-                except ValueError:
-                    obj = u'"%s"' % tmp
-            else:
-                obj = u'?%s' % entity_name
-            pred = u'?%s' % entity_name
-            self.query_builder.add_query_triple(
-                RDFTriple(
-                    subject=self.args['subject'],
-                    predicate=pred,
-                    object=obj,
-                    language=self.query_language
-                )
-            )
-
-        # Fetching everything about that person
-        self.query_builder.add_query_triple(
-            RDFTriple(
-                subject=self.args['subject'],
-                predicate=self.args['predicate'],
-                object=self.args['object'],
-                language=self.query_language
-            )
-        )
 
     def _get_life_info(self, life_event='birth'):
         """For a given information type (i.e death, birth), this function
@@ -132,7 +70,8 @@ class Person(Thing):
         biography_info = {}
         already_contains_birth_date = False # True if and only if we already have a full date
         for k, v in self.attributes.items():
-            if life_event in k.lower():
+            k = k.lower()
+            if life_event in k:
                 infos = v if isinstance(v, set) else set([v])
                 for info in infos:
                     if info.count('-') > 4:
@@ -163,7 +102,6 @@ class Person(Thing):
                         biography_info = merge_two_dicts_in_sets(
                             biography_info,
                             {'other': info})
-
 
         return biography_info
 
@@ -201,9 +139,10 @@ class Person(Thing):
                     u'Q1052281': u'MtF',
                     u'Q2449503': u'FtM',
                     u'Q1097630': u'intersex',
+                    u'genderqueer': u'queer'
                 }
                 gender = next(iter(info)) if isinstance(info, set) else info
-                return genders.get(gender[gender.find(':') + 1:], u'unknown')
+                return genders.get(gender[gender.find(':') + 1:], u'other')
         return u'unknown'
 
     def get_names(self):
@@ -215,7 +154,7 @@ class Person(Thing):
         # Idiomatic elements
         # A dirty way to get all the names that does not contain 'name' in their names
         idiomatic_name_keys = {
-            v for v in chain.from_iterable([n for k, n in self.thing_attributes.items() if 'name' in k])
+            v for v in chain.from_iterable([n for k, n in self.voc_attributes.items() if 'name' in k])
             if 'name' not in v
         }
 
@@ -235,3 +174,33 @@ class Person(Thing):
 
                     names[name_type] = name
         return names
+
+
+
+    def get_external_ids(self):
+        """
+        Get the external ids of the Person.
+        """
+        ids = {}
+
+        same_as = self.attributes.get(u'owl:sameAs')
+        same_as = same_as if isinstance(same_as, set) else set([same_as])
+
+        exact_match = self.attributes.get(u'skos:exactMatch')
+        exact_match = exact_match if isinstance(exact_match, set) else set([exact_match])
+
+        external_ids = same_as.union(exact_match)
+
+        for external_id in external_ids:
+            if u'ark' in external_id:
+                ids[u'ark'] = external_id
+            elif u'viaf' in external_id:
+                ids[u'viaf'] = external_id
+            elif u'd-nb.info' in external_id:
+                ids[u'Deutschen_Nationalbibliothek'] = external_id
+            elif u'wikidata.org' in external_id:
+                ids[u'wikidata'] = external_id
+            elif u'idref' in external_id:
+                ids[u'idref'] = external_id
+
+        return ids

@@ -99,10 +99,13 @@ def merge_two_dicts_in_sets(x, y):
 # ---- Stringology ---- #
 def normalize_str(s):
     """ Remove leading and trailing and multiple whitspaces from a string s.
-    :param s: a string
+    :param s: a string or unicode
     :return: the unicode normalised version of s
     """
-    s = unicode(s.strip())
+    if isinstance(s, str):
+        s = unicode(s.strip(), 'utf-8')
+    else:
+        s = s.strip()
     s = normalize('NFC', s)
     return u' '.join(s.split())
 
