@@ -58,15 +58,15 @@ def test_genericsparqlquery_base_case():
     truth_query = u'PREFIX foaf: <http://xmlns.com/foaf/0.1/> ' \
                   u'PREFIX dbo: <http://dbpedia.org/ontology/> ' \
                   u'PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> ' \
-                  u'SELECT * WHERE {' \
+                  u'SELECT DISTINCT * WHERE {' \
                   u' ?person rdfs:label "Simone de Beauvoir"@fr .' \
                   u' ?person dbo:birthDate ?birthdate .' \
                   u' ?person foaf:gender ?gender . ' \
                   u'} ' \
                   u'LIMIT 10'
 
-    ratio = fuzz.ratio(query.queries[Endpoint.DEFAULT], truth_query)
-    assert ratio > 98
+    ratio = fuzz.token_sort_ratio(query.queries[Endpoint.DEFAULT], truth_query)
+    assert ratio==100
 
     truth_results = [
         [
@@ -96,8 +96,8 @@ def test_genericsparqlquery_add_endpoints():
     query.add_endpoint(Endpoint.dbpedia)
     assert query.endpoints == set([Endpoint.dbpedia])
 
-    query.add_endpoints([Endpoint.babelnet, Endpoint.dbpedia_fr])
-    assert query.endpoints == set([Endpoint.dbpedia, Endpoint.babelnet, Endpoint.dbpedia_fr])
+    query.add_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])
+    assert query.endpoints == set([Endpoint.dbpedia, Endpoint.bnf, Endpoint.dbpedia_fr])
 
 @raises(QueryException)
 def test_genericsparqlquery_add_endpoints_unsupported_endpoint():

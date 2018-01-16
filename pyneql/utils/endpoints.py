@@ -15,14 +15,14 @@ class Endpoint(Enum):
     # Generic information
     dbpedia = u'http://dbpedia.org/sparql'
     dbpedia_fr = u'http://fr.dbpedia.org/sparql'
-    wikidata = u'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
+    wikidata = u'https://query.wikidata.org/sparql'  # u'https://query.wikidata.org/bigdata/namespace/wdq/sparql'
 
     # Bibliographic information
     bnf = u'http://data.bnf.fr/sparql'
     # openBNB = u'http://bnb.data.bl.uk/sparql'  # The Linked Open British National Bibliography
 
     # Lexical info
-    babelnet = u'http://babelnet.org/sparql/'
+    # babelnet = u'http://babelnet.org/sparql/'
 
 def is_endpoint_multilingual(endpoint):
     """ Some endpoints are multilinguals and requires the language information

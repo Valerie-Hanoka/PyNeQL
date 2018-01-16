@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""
-test_personquerybuilder is part of the project PyNeQL
-Author: Valérie Hanoka
-
-"""
 
 from nose.tools import *
 
@@ -15,92 +10,150 @@ from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.utils import QueryException
 
 import datetime
-import dateutil.tz
 
+# TODO: • test for each the search with first and last name independently
+# TODO: • Find why wikidata is not working any more
 
-def test_person_base_case():
-    """Person - Base case, no issues: Should pass"""
-
-    duras = Person(first_name="Marguerite", last_name="Duras", query_language=Lang.French)
-    duras.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr])
-    duras.query()
-
-    expected ={
-        u'bio:birth': u'1914-04-04',
-        u'bio:death': u'1996-03-03',
-        u'bnf_onto:firstYear': u'1914',
-        u'bnf_onto:lastYear': u'1996',
-        u'foaf:birthday': u'04-04',
-        u'foaf:depiction': set([u'http://commons.wikimedia.org/wiki/Special:FilePath/Marguerite_Duras_1993.jpg',
-                                u'http://commons.wikimedia.org/wiki/Special:FilePath/Marguerite_Duras_1993.jpg?width=300',
-                                u'http://gallica.bnf.fr/ark:/12148/bpt6k3323544p.thumbnail',
-                                u'http://gallica.bnf.fr/ark:/12148/bpt6k33468995.thumbnail',
-                                u'http://gallica.bnf.fr/ark:/12148/bpt6k48048066.thumbnail',
-                                u'https://upload.wikimedia.org/wikipedia/commons/e/e9/Marguerite_Duras.png']),
-        u'foaf:familyName': u'Duras',
-        u'foaf:gender': u'female',
-        u'foaf:givenName': u'Marguerite',
-        u'foaf:name': u'Marguerite Duras',
-        u'foaf:page': u'http://data.bnf.fr/11901349/marguerite_duras/',
-        u'owl:sameAs': set([u'dbpedia_fr:Marguerite_Duras',
-                            u'http://data.bnf.fr/ark:/12148/cb119013498#about',
-                            u'http://data.bnf.fr/ark:/12148/cb119013498#foaf:Person',
-                            u'http://viaf.org/viaf/97785734',
-                            u'http://www.idref.fr/027405168/id']),
-        u'rdagroup2elements:biographicalInformation': u'Romanci\xe8re, cin\xe9aste et dramaturge. - Pseudonyme de Marguerite Donnadieu',
-        u'rdagroup2elements:countryAssociatedWithThePerson': u'http://id.loc.gov/vocabulary/countries/fr',
-        u'rdagroup2elements:dateOfBirth': u'http://data.bnf.fr/date/1914/',
-        u'rdagroup2elements:dateOfDeath': u'http://data.bnf.fr/date/1996/',
-        u'rdagroup2elements:fieldOfActivityOfThePerson': set([u'Audiovisuel',
-                                                              u'Litt\xe9ratures',
-                                                              u'http://dewey.info/class/791/',
-                                                              u'http://dewey.info/class/800/']),
-        u'rdagroup2elements:languageOfThePerson': u'http://id.loc.gov/vocabulary/iso639-2/fre',
-        u'rdagroup2elements:placeOfBirth': u'Gia Dinh (Vietnam)',
-        u'rdagroup2elements:placeOfDeath': u'Paris',
-        u'rdf:type': u'foaf:Person',
-        u'skos:exactMatch': u'http://data.bnf.fr/ark:/12148/cb119013498#foaf:Person',
-        u'validated': 1}
-
-    import pprint; print(duras.query_builder.queries)
-    assert duras.attributes == expected
-
-
-def test_person_wikidata():
-    """Person - Wikidata: Should pass"""
-
-    # In Chinese
-    vivian_qu = Person(full_name=u'文晏', query_language=Lang.Chinese)
-    vivian_qu.add_query_endpoint(Endpoint.wikidata)
-    vivian_qu.query()
-    assert vivian_qu.attributes.get(u'owl:sameAs', None) == u'wd:Q17025364'
-
-    # French - Getting various attributes
-    duras = Person(full_name=u'Marguerite Duras', query_language=Lang.French)
-    duras.add_query_endpoint(Endpoint.wikidata)
-    duras.query()
-
-    expected_birth = {
-        'date': datetime.datetime(1914, 4, 4, 0, 0, tzinfo=dateutil.tz.tzutc()),
-        'name': u'Marguerite Germaine Marie Donnadieu',
-        'place': u'wd:Q1854'
-    }
-
-    print(duras.get_death_info())
-    assert duras.get_birth_info() == expected_birth
-
-    expected_death = {
-        'cause/manner': set([u'wd:Q372701', u'wd:Q3739104']),
-        'date': datetime.datetime(1996, 3, 3, 0, 0, tzinfo=dateutil.tz.tzutc()),
-        'place': u'wd:Q90'
-    }
-    assert duras.get_death_info() == expected_death
-    assert duras.get_gender() == u'F'
-
+##################################################
+#                 QUERY
+##################################################
 
 @raises(QueryException)
 def test_person_incomplete():
     """Person - Not enough arguments: Should fail"""
     Person(first_name="Marguerite", query_language=Lang.French)
 
-# TODO: Test each endpoint independently. Test info extraction methods too.
+
+# Testing Endpoint: dbpedia
+def test_person_dbpedia_query_strict_True():
+    """Person - dbpedia - strict=True - : Should pass"""
+    person = Person(full_name="Victor Hugo", query_language=Lang.French)
+    person.add_query_endpoint(Endpoint.dbpedia)
+    person.query()
+
+    assert person.get_external_ids() == {
+        u'Deutschen_Nationalbibliothek': u'http://d-nb.info/gnd/118554654',
+        u'viaf': u'http://viaf.org/viaf/9847974'
+    }
+
+def test_person_dbpedia_query_strict_False():
+    """Person - dbpedia - strict=False - : Should pass """
+    person = Person(full_name="Nan Goldin", query_language=Lang.German)
+    person.add_query_endpoint(Endpoint.dbpedia)
+    person.query_builder.set_limit(666)
+    person.query(strict_mode=False)
+    assert u'http://wikidata.dbpedia.org/resource/Q234279' in person.attributes.get(u'owl:sameAs')
+
+# Testing Endpoint: dbpedia_fr
+
+def test_person_dbpedia_fr_query_strict_True():
+    """Person - dbpedia_fr - strict=True - : Should pass """
+    person = Person(full_name="Jean-Jacques Servan-Schreiber", query_language=Lang.French)
+    person.add_query_endpoint(Endpoint.dbpedia_fr)
+    person.query()
+    assert u'freebase:m.05rj1c' in person.attributes.get(u'owl:sameAs')
+
+
+def test_person_dbpedia_fr_query_strict_False():
+    """Person - dbpedia_fr - strict=False - : Should pass """
+    person = Person(full_name=u"Hercule Poirot", query_language=Lang.French)
+    person.add_query_endpoint(Endpoint.dbpedia_fr)
+    person.query(strict_mode=False)
+    assert u'freebase:m.0ljm' in person.attributes.get(u'owl:sameAs')
+
+
+# Testing Endpoint: wikidata
+# def test_person_wikidata_query_strict_True():
+#     """Person - wikidata - strict=True - : Should pass """
+#     person = Person(full_name=u'文晏', query_language=Lang.Chinese)
+#     person.add_query_endpoint(Endpoint.wikidata)
+#     person.query(strict_mode=True)
+#     assert u'wd:Q17025364' in person.attributes.get(u'owl:sameAs')
+#
+#
+# def test_person_wikidata_query_strict_False():
+#     """Person - wikidata - strict=False - : Should pass"""
+#     person = Person(has_full_name=u"Πλάτωνας", query_language=Lang.Greek_modern)
+#     person.add_query_endpoint(Endpoint.wikidata)
+#     person.query(strict_mode=False)
+#      assert u'wd:Q859' in person.attributes.get(u'owl:sameAs')
+
+
+# Testing Endpoint: bnf
+def test_person_bnf_query_strict_True():
+    """Person - bnf - strict=True - : Should pass """
+    person = Person(full_name="Simone de Beauvoir", query_language=Lang.French)
+    person.add_query_endpoint(Endpoint.bnf)
+    person.query()
+    assert u'dbpedia_fr:Simone_de_Beauvoir' in person.attributes.get(u'owl:sameAs')
+
+def test_person_bnf_query_strict_False():
+    """Person - bnf - strict=False - : Should pass """
+    person = Person(full_name="Hannah Arendt", query_language=Lang.French)
+    person.add_query_endpoint(Endpoint.bnf)
+    person.query(strict_mode=False)
+    import pprint; pprint.pprint(person.attributes)
+    assert u'dbpedia_fr:Hannah_Arendt' in person.attributes.get(u'owl:sameAs')
+
+
+##################################################
+#                 QUERY
+##################################################
+
+def test_person_get_death_info():
+    """Person - get_death_info : Should pass """
+    person = Person(full_name=u'Marguerite Duras', query_language=Lang.French)
+    person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
+    person.query(strict_mode=False)
+
+
+    expected_death = {
+        'date': datetime.datetime(1996, 3, 3, 0, 0),
+        'other': set([u'1996-03-03+02:00', u'http://data.bnf.fr/date/1996/']),
+        'place': set([u'Paris',
+                      u'Paris, France',
+                      u'dbpedia:Paris',
+                      u'dbpedia_fr:6e_arrondissement_de_Paris'
+                      ])
+    }
+    assert person.get_death_info() == expected_death
+
+def test_person_get_birth_info():
+    """Person - get_birth_info: Should pass """
+    person = Person(last_name="Arendt", first_name="Hannah")
+    person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
+    person.query(strict_mode=False)
+    import pprint; pprint.pprint(person.get_birth_info())
+    expected_birth = {
+        'date': datetime.datetime(1906, 10, 14, 0, 0),
+        'other': u'http://data.bnf.fr/date/1906/',
+        'place': set([u'Hanovre (Allemagne)',
+                      u'dbpedia:German_Empire',
+                      u'dbpedia:Germany',
+                      u'dbpedia:Hanover',
+                      u'dbpedia:Linden-Limmer'])
+    }
+    assert person.get_birth_info() == expected_birth
+
+def test_person_get_gender():
+    """Person - get_gender : Should pass """
+    person = Person(full_name="Chelsea Manning", query_language=Lang.English)
+    person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
+    person.query(strict_mode=False)
+    assert person.get_gender() == 'F'
+
+def test_person_get_names():
+    """Person - get_names : Should pass """
+    person = Person(full_name="RuPaul")
+    person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
+    person.query(strict_mode=True)
+    names = person.get_names()
+    assert u'RuPaul Andre Charles' in names.get(u'dbo:birthName')
+
+def test_person_get_external_ids():
+    """Person - : Should {pass|fail} """
+    person = Person(full_name='Virginia Woolf', query_language=Lang.French)
+    person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
+    person.query()
+    result = person.get_external_ids()
+    assert u'http://www.idref.fr/027199746/id' in result.get(u'idref')
