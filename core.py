@@ -7,7 +7,7 @@ Author: Valérie Hanoka
 
 # Debug:
 
-from pyneql.ontology.person import Person
+from pyneql.ontology.book import Book
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 from pyneql.utils.endpoints import Endpoint
 import dataset
@@ -24,6 +24,13 @@ import pprint, ipdb
 
 endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
+
+thing = Book(
+    author="Diderot, Denis, 1713-1784.",
+    title="L’Oiseau blanc, conte bleu")
+thing.add_query_endpoints(endpoints)
+thing.query(strict_mode=False)
+pprint.pprint(thing.attributes)
 
 import ipdb; ipdb.set_trace()
 

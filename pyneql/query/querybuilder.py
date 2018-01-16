@@ -214,7 +214,6 @@ class GenericSPARQLQuery(object):
                 u'SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],%s". } %s' % (
                     u', '.join([l.value for l in self.languages]),
                     arguments[u'triples'])
-
         self.queries[endpoint] = self.template_query % arguments
 
     def reset_queries(self):

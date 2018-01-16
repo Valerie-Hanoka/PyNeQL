@@ -95,9 +95,18 @@ def test_person_bnf_query_strict_False():
     import pprint; pprint.pprint(person.attributes)
     assert u'dbpedia_fr:Hannah_Arendt' in person.attributes.get(u'owl:sameAs')
 
+# With URL
+
+def test_thing_query_URL():
+    """Person - URL query - : Should pass """
+    person = Person(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    person.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf])
+    person.query()
+    assert u'http://viaf.org/viaf/17218730' in person.attributes.get(u'owl:sameAs')
+
 
 ##################################################
-#                 QUERY
+#                 OTHER METHODS
 ##################################################
 
 def test_person_get_death_info():
@@ -151,7 +160,7 @@ def test_person_get_names():
     assert u'RuPaul Andre Charles' in names.get(u'dbo:birthName')
 
 def test_person_get_external_ids():
-    """Person - : Should {pass|fail} """
+    """Person - : Should pass """
     person = Person(full_name='Virginia Woolf', query_language=Lang.French)
     person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
     person.query()

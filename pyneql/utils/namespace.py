@@ -62,6 +62,7 @@ class NameSpace(Enum):
     fn = u'http://www.w3.org/2005/xpath-functions/#'
     foaf = u'http://xmlns.com/foaf/0.1/'
     frbr_rda = u'http://rdvocab.info/uri/schema/FRBRentitiesRDA/'
+    fabio = u'http://purl.org/spar/fabio/'
     freebase = u'http://rdf.freebase.com/ns/'
     gas = u'http://www.bigdata.com/rdf/gas#'
     genremus = u'http://data.bnf.fr/vocabulary/musical-genre/'

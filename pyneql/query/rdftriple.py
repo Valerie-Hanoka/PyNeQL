@@ -122,7 +122,6 @@ class RDFTriple(object):
                     self.predicate,
                     u'%s@%s' % (self.object, self.language.value)
                 )
-
         return u"%s %s %s ." % (self.subject, self.predicate, self.object)
 
     def _extract_prefix_from_rdf_element(self, element):
@@ -141,11 +140,13 @@ class RDFTriple(object):
         dc:title and the prefix vocabulary.NameSpace.dc will be added to self.prefixes.
         If the namespace cannot be identified, then it is just normalized and returned.
 
-        Case 3: The element contains a prefix. If this prefix is already listed in
+        Case 3 - The element is an URL.
+
+        Case 4: The element contains a prefix. If this prefix is already listed in
         self.prefixes, no change is made. If the prefix is not yet in the list,
         we add it if possible (raise a NameSpace Exeption otherwise)
 
-        Case 4: Just normalize the string (spaces, unicode) and return it.
+        Other cases: Just normalize the string (spaces, unicode) and return it.
 
         :param element: One of the 3 element of an RDF triple (subject, object or predicate).
         :return: Normalized string of an rdf triple element if it is a string
@@ -170,7 +171,11 @@ class RDFTriple(object):
                     self.add_prefix(short_prefix)
                     element = u'%s:%s' % (short_prefix.name, ns_element[limit:])
 
-        # Case 3 - The element contains a prefix
+        # Case 3 - The element is an URL.
+        elif element[0:7] == 'http://':
+            return u'<%s>' % element
+
+        # Case 4 - The element contains a prefix
         elif u':' in element:
             pref, elem = element.split(u':')
             known_pref = NameSpace.__members__.get(pref)
@@ -192,7 +197,6 @@ class RDFTriple(object):
                     u"In the standard vocabulary, %s can't be found. "
                     u"Without a prior declaration in the prefixes, it can't be used."
                     % known_pref)
-
         # Other cases
         return normalize_str(element)
 

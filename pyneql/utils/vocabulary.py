@@ -22,6 +22,18 @@ rdf_types = {
         "wd:Q5",  # Wikidata for a human being.
         "dul:NaturalPerson",
         "schema:Person"
+    },
+    # Work and CreativeWork are seen as equivalent (cf. http://dbpedia.org/ontology/Work)
+    u'Book': {
+        "wd:Q571", # Wikidata for Book
+        "wd:Q7725634",  # Wikidata for a literary work.
+        "schema:Book",
+        "schema:Thesis",
+        "dbpedia_owl:Book",
+        "dbpedia_owl:WrittenWork"  # Superclass
+        "fabio:Book",
+        "bibo:Book",
+        ""
     }
 }
 
@@ -33,7 +45,7 @@ rdf_types = {
 attributes = {
     u'Thing': {
         u'has_foo': [u'foo:bar', u'foo:baz'],  # For the example
-        u'has_label': [u'rdfs:label']
+        u'has_label': [u'rdfs:label', u'wdt:P1813']
     },
     u'Person': {
         u'has_first_name': [
@@ -93,5 +105,13 @@ attributes = {
             u'bnf_onto:firstYear',
             u'bio:birth'
         ],
-    }
+    },
+    u'Book': {
+        u'has_author': [
+            u'wdt:P50',    # author
+            u'wdt:P1773',  # attributed to
+            u'wdt:P2093',  # author name string
+            u'schema:author'
+        ],
+    },
 }
