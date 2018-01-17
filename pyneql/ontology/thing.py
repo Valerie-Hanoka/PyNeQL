@@ -27,6 +27,10 @@ from pyneql.utils.utils import (
     merge_two_dicts_in_sets
 )
 
+from pyneql.utils.utils import normalize_str
+
+from functools import reduce
+
 
 class Thing(object):
     """
@@ -47,11 +51,13 @@ class Thing(object):
     # for something more specific than a Thing
     # bust begin with "has_".
     has_label = None
+    has_url = None
 
     def __init__(
             self,
             query_language=Lang.DEFAULT,
             label=None,
+            url=None,
             endpoints=None,  # SPARQL endpoints where the query should be sent
             class_name=u'Thing'
             ):
@@ -60,6 +66,7 @@ class Thing(object):
             raise QueryException("The language of the query must be of type enum.LanguagesIso6391.")
 
         self.has_label = label
+        self.has_url = url
 
         self.class_name = class_name
         self.rdf_types = rdf_types[class_name]
@@ -85,6 +92,40 @@ class Thing(object):
 
     def _build_query(self, strict_mode=True):
         """
+
+        :param strict_mode:
+        :return:
+        """
+
+        self.query_builder.reset_queries()
+
+        # The query will be generated according to the class variables beginning with 'has_'.
+        entities_names = [e for e in self.__dict__.keys() if e.startswith('has_') and self.__dict__.get(e, None)]
+        if 'has_url' in entities_names:
+            # If we already have an url to query, the object we are looking for is unambiguous.
+            # We thus do not need to build a specific query to find it.
+
+            wanna_know = [self.args['predicate'], self.args['object']]
+            self.query_builder.add_query_triple(
+                RDFTriple(
+                    subject=self.has_url,
+                    predicate=self.args['predicate'],
+                    object=self.args['object'],
+                    language=self.query_language
+                )
+            )
+
+        else:
+            # we have to find the thing using other clues
+            wanna_know = [self.args['subject'], self.args['predicate'], self.args['object']]
+            self._build_standard_query(strict_mode, entities_names)
+
+        self.query_builder.add_result_arguments(wanna_know)
+
+
+
+    def _build_standard_query(self, strict_mode, entities_names):
+        """
         Updates the query_builder of the thing.
         There are two modes available for this query: strict and non strict.
         Let's take an example:
@@ -100,8 +141,6 @@ class Thing(object):
         :param strict_mode: True (default) if strict_mode is enabled, False otherwise
         :return:
         """
-
-        self.query_builder.reset_queries()
         # Restricting the query to elements of the current type
         # This will build a query with
         to_unite = set([])
@@ -117,11 +156,8 @@ class Thing(object):
 
         # Adding query delimiters, that are the parameters given for query
         # (i.e stored in the instance variables begining with "has_").
-
-        # The query will be generated according to the class variables beginning with 'has_'.
-        entities_names = [e for e in self.__dict__.keys() if e.startswith('has_') and self.__dict__.get(e, False)]
         for entity_name in entities_names:
-            entity_value = self.__dict__.get(entity_name, None)
+            entity_value = normalize_str(self.__dict__.get(entity_name, None))
             # The instance has an instantiated value for a 'has_…' variable. This value will be the
             # object of an RDF triplet.
             if entity_value:
@@ -129,7 +165,10 @@ class Thing(object):
                     # For dates elements, the triplet literal must be formatted without quotes
                     obj = int(entity_value)
                 except ValueError:
-                    obj = u'"%s"' % entity_value
+                    if entity_value[0:7] == u'http://':
+                        obj = u'%s' % entity_value  # The entity is a raw URL
+                    else:
+                        obj = u'"%s"' % entity_value
             else:
                 # If no value was specified, the object will be a variable in the SPARQL query
                 obj = u'?%s' % entity_name
@@ -172,8 +211,6 @@ class Thing(object):
 
         self._build_query(strict_mode)
         self.query_builder.add_endpoints(self.endpoints)
-        wanna_know = [self.args['subject'], self.args['predicate'], self.args['object']]
-        self.query_builder.add_result_arguments(wanna_know)
         self.query_builder.commit()
         self._process_results()
 
@@ -181,27 +218,40 @@ class Thing(object):
         """Given the result of a SPARQL query to find a Thing,
         this creates a Thing with all the information gathered."""
 
-        values_to_check = {v: e for e, v in self.__dict__.items() if e.startswith('has_') and self.__dict__.get(e, False)}
+        values_to_check = {
+            v: e for e, v in self.__dict__.items()
+            if e.startswith('has_') and self.__dict__.get(e, None)}
         things = {}
 
-        for result in self.query_builder.results:
+        subj = self.args['subject'][1:]
+        obj = self.args['object'][1:]
+        pred = self.args['predicate'][1:]
 
-            dict_results = {arg_name: get_shortened_uri(arg_value) for (arg_name, arg_value) in result}
-            thing = dict_results.pop(self.args['subject'][1:], None)
+        if self.__dict__.get('has_url', None):
+            # If we retrieved the thing usint its URL, we are sure the results correspond to the right thing.
+            result_dict_list = [{a: a1, b: b1} for (a, a1), (b, b1) in self.query_builder.results]
+            result_dict_list = [{get_shortened_uri(item.get(pred)): item.get(obj)} for item in result_dict_list]
+            things[self.__dict__.get('has_url')] = reduce(merge_two_dicts_in_sets, result_dict_list)
+            things[self.__dict__.get('has_url')]["validated"] = 1
+        else:
+            # We need to check the type of the responses
+            for result in self.query_builder.results:
+                dict_results = {arg_name: get_shortened_uri(arg_value) for (arg_name, arg_value) in result}
+                thing = dict_results.pop(subj, None)
 
-            # Checking that it is the thing we are looking for
-            if dict_results[self.args['object'][1:]] in values_to_check:
-                value = dict_results[self.args['object'][1:]]
-                properties = self.voc_attributes.get(values_to_check[value], False)
-                if properties and dict_results[self.args['predicate'][1:]] in properties:
-                    things[thing]["validated"] = 1
+                # Checking that it is the thing we are looking for
+                if dict_results[obj] in values_to_check:
+                    value = dict_results[obj]
+                    properties = self.voc_attributes.get(values_to_check[value], False)
+                    if properties and dict_results[pred] in properties:
+                        things[thing]["validated"] = 1
 
-            shortened_result = {dict_results[u'pred']: dict_results[u'obj']}
-            things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
+                shortened_result = {dict_results[pred]: dict_results[obj]}
+                things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
 
         # Wikimedia... (╯°□°）╯︵ ┻━┻ Accepting wikimedia elements that correspond to an entity because
         # what we will have TODO is to filter them properly.
-        unfiltered_wikimedia_things = [t for t in things.keys() if 'wd:' in t and not t == u'wd:Q12949604']
+        unfiltered_wikimedia_things = [t for t in things.keys() if 'wd:' in t]
         for unfiltered_wikimedia_thing in unfiltered_wikimedia_things:
             things[unfiltered_wikimedia_thing]["validated"] = 1
 

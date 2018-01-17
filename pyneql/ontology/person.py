@@ -40,25 +40,33 @@ class Person(Thing):
     has_birth_year = None
     has_death_year = None
 
+    has_url = None
+
     def __init__(self,
                  full_name=None, last_name=None, first_name=None,
+                 url=None,
                  # birth_year=None, death_year=None,
                  query_language=Lang.DEFAULT,
                  endpoints=None,  # SPARQL endpoints where the query should be sent
                  class_name=u'Person'
                  ):
 
-        if not (full_name or (first_name and last_name)):  #  or birth_year or death_year
+        if not (full_name or (first_name and last_name) or url):  #  or birth_year or death_year
             raise QueryException("There is not enough information provided to find this person."
                                  " Provide full name information.")
 
         self.has_full_name = normalize_str(full_name) if full_name else None
         self.has_last_name = normalize_str(last_name) if last_name else None
         self.has_first_name = normalize_str(first_name) if first_name else None
+
         # self.has_birth_year = birth_year
         # self.has_death_year = death_year
-        super(Person, self).__init__(query_language=query_language, endpoints=endpoints, class_name=class_name)
-
+        super(Person, self).__init__(
+            url=url,
+            query_language=query_language,
+            endpoints=endpoints,
+            class_name=class_name
+        )
 
     def _get_life_info(self, life_event='birth'):
         """For a given information type (i.e death, birth), this function
@@ -175,8 +183,6 @@ class Person(Thing):
                     names[name_type] = name
         return names
 
-
-
     def get_external_ids(self):
         """
         Get the external ids of the Person.
@@ -204,3 +210,10 @@ class Person(Thing):
                 ids[u'idref'] = external_id
 
         return ids
+
+    def get_works(self):
+        """Get the works of a person"""
+        #wdt:P1455
+        # http://purl.org/dc/terms/contributor
+
+        pass

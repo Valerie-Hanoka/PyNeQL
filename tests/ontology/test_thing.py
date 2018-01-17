@@ -165,6 +165,16 @@ def test_thing_bnf_query_strict_False():
     thing.query(strict_mode=False)
     assert thing.attributes.get(u'owl:complementOf') == u'owl:Thing'
 
+# With URL
+
+def test_thing_query_URL():
+    """Thing - URL query - : Should pass """
+    thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    thing.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf])
+    thing.query()
+    assert u'http://viaf.org/viaf/17218730' in thing.attributes.get(u'owl:sameAs')
+
+
 ####################################################
 #                 OTHER METHODS
 ####################################################

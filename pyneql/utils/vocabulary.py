@@ -8,20 +8,31 @@ Author: Valérie Hanoka
 
 rdf_types = {
     u'Thing': {
-        "dbo:Thing",
-        "owl:Class",
-        "owl:Thing",
-        "wd:Q35120",  # Wikidata for entity.
-        "schema:Thing",
-        "schema:Class",
-        "wdt_o:Item"
+        u"dbo:Thing",
+        u"owl:Class",
+        u"owl:Thing",
+        u"wd:Q35120",  # Wikidata for entity.
+        u"schema:Thing",
+        u"schema:Class",
+        u"wdt_o:Item"
     },
     u'Person': {
-        "foaf:Person",
-        "dbpedia_owl:Person",
-        "wd:Q5",  # Wikidata for a human being.
-        "dul:NaturalPerson",
-        "schema:Person"
+        u"foaf:Person",
+        u"dbpedia_owl:Person",
+        u"wd:Q5",  # Wikidata for a human being.
+        u"dul:NaturalPerson",
+        u"schema:Person"
+    },
+    # Work and CreativeWork are seen as equivalent (cf. http://dbpedia.org/ontology/Work)
+    u'Book': {
+        u"wd:Q571", # Wikidata for Book
+        u"wd:Q7725634",  # Wikidata for a literary work.
+        u"schema:Book",
+        u"schema:Thesis",
+        u"dbpedia_owl:Book",
+        u"dbpedia_owl:WrittenWork",  # Superclass
+        u"fabio:Book",
+        u"bibo:Book"
     }
 }
 
@@ -33,7 +44,7 @@ rdf_types = {
 attributes = {
     u'Thing': {
         u'has_foo': [u'foo:bar', u'foo:baz'],  # For the example
-        u'has_label': [u'rdfs:label']
+        u'has_label': [u'rdfs:label', u'wdt:P1813']
     },
     u'Person': {
         u'has_first_name': [
@@ -93,5 +104,28 @@ attributes = {
             u'bnf_onto:firstYear',
             u'bio:birth'
         ],
-    }
+    },
+    u'Book': {
+        u'has_author': [
+            u'wdt:P50',    # author
+            u'wdt:P1773',  # attributed to
+            u'wdt:P2093',  # author name string
+            u'schema:author',
+            u'schema:creator'
+        ],
+        u'has_title': [
+            u'schema:alternativeHeadline',
+            u'schema:alternateName',
+            u'schema:name',
+        ],
+        u'has_isbn': [
+            u'schema:isbn',
+        ],
+        u'has_publicatin_date': [
+            u'schema:datePublished'
+        ],
+        u'has_publisher': [
+            u'schema:publisher'
+        ]
+    },
 }
