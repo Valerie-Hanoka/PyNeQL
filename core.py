@@ -18,29 +18,68 @@ from pyneql.utils.namespace import NameSpace
 from fuzzywuzzy import fuzz
 
 from pyneql.ontology.thing import Thing
-
+from pyneql.ontology.person import Person
 import pprint, ipdb
 
 
 endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
 
-thing = Book(
-    author="Diderot, Denis, 1713-1784.",
-    title="L’Oiseau blanc, conte bleu")
-thing.add_query_endpoints(endpoints)
+thing = Thing(label=u"Л’Иль-д’Абоe", query_language=Lang.Russian)
+thing.add_query_endpoint(Endpoint.dbpedia)
+thing.query_builder.set_limit(666)
 thing.query(strict_mode=False)
-pprint.pprint(thing.attributes)
+
+expected = {
+    'endpoints': set([Endpoint.dbpedia]),
+    'has_label': u"Л’Иль-д’Абоe",
+    'query_language': Lang.Russian,
+}
+print thing.endpoints == expected.get('endpoints')
+print thing.has_label == expected.get('has_label')
+print thing.query_language == expected.get('query_language')
+print thing.attributes.get(u'owl:sameAs') == u'wd:Q36494'  # https://www.wikidata.org/wiki/Q36494
 
 import ipdb; ipdb.set_trace()
+
+#thing = Person(full_name="Marguerite Duras", query_language=Lang.French)
+#thing = Book(gallica_url=u"http://gallica.bnf.fr/ark:/12148/bpt6k6258559w")
+
+thing = Book(
+    #title=u"Les Misérables",
+    #author=u"Charles Baudelaire",
+    gallica_url=u"http://gallica.bnf.fr/ark:/12148/bpt6k6258559w",
+    query_language=Lang.French,
+    endpoints=endpoints
+)
+
+
+thing.query(strict_mode=False, check_type=False)
+#thing.deepen_search()
+pprint.pprint(thing.attributes)
+import ipdb; ipdb.set_trace()
+
+
 
 
 #persons(db, endpoints)
 #books(db, endpoints)
 
 
+
 def books(db, endpoints):
     book_table = db['identifier']
+    for row in book_table:
+        print "_____________________________"
+        print(row)
+        if row.get('type') == u'url' and row.get('idno'):
+            book =  Book(gallica_url=row.get('idno'))
+            book.add_query_endpoints(endpoints)
+            book.query(check_type=False)
+            book.deepen_search()
+            pprint.pprint(book.attributes)
+
+#books(db, endpoints)
 
 
 def persons(db, endpoints):

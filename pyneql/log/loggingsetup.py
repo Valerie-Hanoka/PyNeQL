@@ -25,7 +25,7 @@ def setup_logging(
     :return:
     """
     path = default_path
-    value = os.getenv(env_key, None)
+    value = os.getenv(env_key)
     if value:
         path = value
     if os.path.exists(path):

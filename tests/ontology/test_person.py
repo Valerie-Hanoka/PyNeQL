@@ -12,7 +12,7 @@ from pyneql.utils.utils import QueryException
 import datetime
 
 # TODO: • test for each the search with first and last name independently
-# TODO: • Find why wikidata is not working any more
+# TODO: • Find why wikidata is not working anymore
 
 ##################################################
 #                 QUERY
@@ -29,7 +29,7 @@ def test_person_dbpedia_query_strict_True():
     """Person - dbpedia - strict=True - : Should pass"""
     person = Person(full_name="Victor Hugo", query_language=Lang.French)
     person.add_query_endpoint(Endpoint.dbpedia)
-    person.query()
+    person.query(strict_mode=True)
 
     assert person.get_external_ids() == {
         u'Deutschen_Nationalbibliothek': u'http://d-nb.info/gnd/118554654',
@@ -50,7 +50,7 @@ def test_person_dbpedia_fr_query_strict_True():
     """Person - dbpedia_fr - strict=True - : Should pass """
     person = Person(full_name="Jean-Jacques Servan-Schreiber", query_language=Lang.French)
     person.add_query_endpoint(Endpoint.dbpedia_fr)
-    person.query()
+    person.query(strict_mode=True)
     assert u'freebase:m.05rj1c' in person.attributes.get(u'owl:sameAs')
 
 
@@ -84,7 +84,7 @@ def test_person_bnf_query_strict_True():
     """Person - bnf - strict=True - : Should pass """
     person = Person(full_name="Simone de Beauvoir", query_language=Lang.French)
     person.add_query_endpoint(Endpoint.bnf)
-    person.query()
+    person.query(strict_mode=True)
     assert u'dbpedia_fr:Simone_de_Beauvoir' in person.attributes.get(u'owl:sameAs')
 
 def test_person_bnf_query_strict_False():
@@ -101,13 +101,26 @@ def test_thing_query_URL():
     """Person - URL query - : Should pass """
     person = Person(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
     person.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf])
-    person.query()
+    person.query(strict_mode=True)
     assert u'http://viaf.org/viaf/17218730' in person.attributes.get(u'owl:sameAs')
 
 
 ##################################################
 #                 OTHER METHODS
 ##################################################
+
+
+def test_person_deepen_search():
+    """Person - deepen_search(): Should pass"""
+    endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
+    joeystarr = Person(full_name=u'Didier Morville', query_language=Lang.French)
+    joeystarr.add_query_endpoints(endpoints)
+    joeystarr.query(strict_mode=True)
+    attr_before_deep_search = len(joeystarr.attributes)
+    joeystarr.deepen_search()
+    attr_after_deep_search = len(joeystarr.attributes)
+    assert attr_before_deep_search < attr_after_deep_search
+
 
 def test_person_get_death_info():
     """Person - get_death_info : Should pass """
@@ -163,6 +176,6 @@ def test_person_get_external_ids():
     """Person - : Should pass """
     person = Person(full_name='Virginia Woolf', query_language=Lang.French)
     person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
-    person.query()
+    person.query(strict_mode=True)
     result = person.get_external_ids()
     assert u'http://www.idref.fr/027199746/id' in result.get(u'idref')

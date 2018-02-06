@@ -1,7 +1,0 @@
-nose
-python-coveralls
-sphinx
-aenum
-requests
-fuzzywuzzy
-python-dateutil

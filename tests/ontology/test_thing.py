@@ -24,7 +24,7 @@ def test_thing_dbpedia_query_strict_True():
     """Thing - dbpedia - strict=True - : Should pass"""
     thing = Thing(label=u'አዲስ አበባ', query_language=Lang.Amharic)
     thing.add_query_endpoint(Endpoint.dbpedia)
-    thing.query()
+    thing.query(strict_mode=True)
 
     expected = {
         'args': {
@@ -67,7 +67,7 @@ def test_thing_dbpedia_fr_query_strict_True():
     """Thing - dbpedia_fr - strict=True - : Should pass """
     thing = Thing(label="Acide pinique", query_language=Lang.French)
     thing.add_query_endpoint(Endpoint.dbpedia_fr)
-    thing.query()
+    thing.query(strict_mode=True)
 
     assert thing.endpoints == set([Endpoint.dbpedia_fr])
     assert thing.has_label == u'Acide pinique'
@@ -170,8 +170,8 @@ def test_thing_bnf_query_strict_False():
 def test_thing_query_URL():
     """Thing - URL query - : Should pass """
     thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
-    thing.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf])
-    thing.query()
+    thing.add_query_endpoints([Endpoint.bnf])
+    thing.query(strict_mode=True)
     assert u'http://viaf.org/viaf/17218730' in thing.attributes.get(u'owl:sameAs')
 
 
@@ -185,6 +185,19 @@ def test_thing_add_query_endpoints():
     all_endpoints = set([e for e in Endpoint if not e == Endpoint.DEFAULT])
     thing.add_query_endpoints(all_endpoints)
     assert thing.endpoints == all_endpoints
+
+
+def test_thing_deepen_search():
+    """Thing - deepen_search(): Should pass"""
+    endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
+    thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    thing.add_query_endpoints(endpoints)
+    thing.query(strict_mode=True)
+    attr_before_deep_search = len(thing.attributes)
+    thing.deepen_search()
+    attr_after_deep_search = len(thing.attributes)
+    assert attr_before_deep_search < attr_after_deep_search
+
 
 @raises(QueryException)
 def test_thing_bad_language():
