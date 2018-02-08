@@ -25,21 +25,30 @@ import pprint, ipdb
 endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
 
-thing = Thing(label=u"Л’Иль-д’Абоe", query_language=Lang.Russian)
-thing.add_query_endpoint(Endpoint.dbpedia)
-thing.query_builder.set_limit(666)
-thing.query(strict_mode=False)
+thing = Thing(label=u"혁kστ혁ηjh혁kي혁ةsjdジアh", query_language=Lang.DEFAULT)
+thing.add_query_endpoint(Endpoint.wikidata)
+thing.query(strict_mode=True, check_type=False)
 
-expected = {
-    'endpoints': set([Endpoint.dbpedia]),
-    'has_label': u"Л’Иль-д’Абоe",
-    'query_language': Lang.Russian,
-}
-print thing.endpoints == expected.get('endpoints')
-print thing.has_label == expected.get('has_label')
-print thing.query_language == expected.get('query_language')
-print thing.attributes.get(u'owl:sameAs') == u'wd:Q36494'  # https://www.wikidata.org/wiki/Q36494
+expected_query = u"""
+PREFIX owl: <http://www.w3.org/2002/07/owl#> 
+PREFIX wd: <http://www.wikidata.org/entity/> 
+PREFIX schemaorg: <http://schema.org/> 
+PREFIX wdt_o: <http://www.wikidata.org/ontology#> 
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+SELECT DISTINCT ?Thing ?pred ?obj WHERE 
+{ SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } 
+?Thing ?has_label "혁kστ혁ηjh혁kي혁ةsjdジアh"@en .
+ ?Thing ?pred ?obj .
+  { ?Thing a schemaorg:Class  } UNION { ?Thing a owl:Thing  } UNION 
+  { ?Thing a schemaorg:Thing  } UNION { ?Thing a wd:Q35120  } UNION 
+  { ?Thing a owl:Class  } UNION { ?Thing a dbo:Thing  } UNION { ?Thing a wdt_o:Item  } .  
+  } LIMIT 1500
+"""
 
+
+
+import fuzzywuzzy
+fuzzywuzzy.fuzz.token_sort_ratio(thing.query_builder.queries[Endpoint.wikidata], expected_query)
 import ipdb; ipdb.set_trace()
 
 #thing = Person(full_name="Marguerite Duras", query_language=Lang.French)

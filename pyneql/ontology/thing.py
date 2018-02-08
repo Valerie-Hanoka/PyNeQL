@@ -156,7 +156,7 @@ class Thing(object):
         else:
             # we have to find the thing using other clues (as label, names, dates,…)
             wanna_know = [self.args['subject'], self.args['predicate'], self.args['object']]
-            self._build_standard_query(entities_names, strict_mode=strict_mode, check_type=check_type)
+            self._build_standard_query(entities_names, check_type=check_type, strict_mode=strict_mode)
 
         self.query_builder.add_result_arguments(wanna_know)
 
@@ -173,7 +173,7 @@ class Thing(object):
             )
         )
 
-    def _build_standard_query(self, entities_names, check_type=True, strict_mode=False,):
+    def _build_standard_query(self, entities_names, check_type=True, strict_mode=False):
         """
         Updates the query_builder of the object.
         The queries options relies on the dictionaries contained in pyneql/utils/vocabulary.py.
@@ -326,7 +326,7 @@ class Thing(object):
         """
 
         if not check_type:
-            logging.warning("Type checking is disabled for object %s" % str(self.__dict__()))
+            logging.warning("Type checking is disabled for object %s" % str(self.__dict__))
 
         subj = self.args['subject'][1:]
         obj = self.args['object'][1:]
