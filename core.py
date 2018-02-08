@@ -18,29 +18,30 @@ from pyneql.utils.namespace import NameSpace
 from fuzzywuzzy import fuzz
 
 from pyneql.ontology.thing import Thing
-
+from pyneql.ontology.person import Person
 import pprint, ipdb
 
-
-endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
-
-thing = Book(
-    author="Diderot, Denis, 1713-1784.",
-    title="L’Oiseau blanc, conte bleu")
-thing.add_query_endpoints(endpoints)
-thing.query(strict_mode=False)
-pprint.pprint(thing.attributes)
-
-import ipdb; ipdb.set_trace()
 
 
 #persons(db, endpoints)
 #books(db, endpoints)
 
 
+
 def books(db, endpoints):
     book_table = db['identifier']
+    for row in book_table:
+        print "_____________________________"
+        print(row)
+        if row.get('type') == u'url' and row.get('idno'):
+            book =  Book(gallica_url=row.get('idno'))
+            book.add_query_endpoints(endpoints)
+            book.query(check_type=False)
+            book.find_more_about()
+            pprint.pprint(book.attributes)
+
+#books(db, endpoints)
 
 
 def persons(db, endpoints):

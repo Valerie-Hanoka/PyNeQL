@@ -19,7 +19,7 @@ class Endpoint(Enum):
 
     # Bibliographic information
     bnf = u'http://data.bnf.fr/sparql'
-    # openBNB = u'http://bnb.data.bl.uk/sparql'  # The Linked Open British National Bibliography
+
 
     # Lexical info
     # babelnet = u'http://babelnet.org/sparql/'

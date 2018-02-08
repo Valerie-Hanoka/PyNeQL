@@ -11,7 +11,6 @@ from pyneql.log.loggingsetup import (
     setup_logging,
 )
 
-
 from pyneql.utils.enum import (
     LanguagesIso6391 as Lang,
 )
@@ -25,6 +24,9 @@ from pyneql.utils.utils import (
 
 from dateutil.parser import parse as parsedate
 from itertools import chain
+
+import six
+
 
 class Person(Thing):
     """
@@ -51,7 +53,7 @@ class Person(Thing):
                  class_name=u'Person'
                  ):
 
-        if not (full_name or (first_name and last_name) or url):  #  or birth_year or death_year
+        if not (full_name or (first_name and last_name) or url):  # or birth_year or death_year
             raise QueryException("There is not enough information provided to find this person."
                                  " Provide full name information.")
 
@@ -68,7 +70,7 @@ class Person(Thing):
             class_name=class_name
         )
 
-    def _get_life_info(self, life_event='birth'):
+    def _get_life_info(self, life_event):
         """For a given information type (i.e death, birth), this function
         returns all information that is available in the linked data about the
         life event of the person (e.g: date and/or place).
@@ -76,12 +78,12 @@ class Person(Thing):
         :return: a dict of information concerning the given life event
         """
         biography_info = {}
-        already_contains_birth_date = False # True if and only if we already have a full date
+        already_contains_birth_date = False  # True if and only if we already have a full date
         for k, v in self.attributes.items():
             k = k.lower()
             if life_event in k:
-                infos = v if isinstance(v, set) else set([v])
-                for info in infos:
+                all_info = v if isinstance(v, set) else {v}
+                for info in all_info:
                     if info.count('-') > 4:
                         continue
                     if contains_a_date(info):
@@ -128,16 +130,15 @@ class Person(Thing):
         return self._get_life_info('birth')
 
     def get_gender(self):
-        """ Get the gender of the person.
+        """This function returns the gender of the person.
         We assume that there is only one gender available for a person in the retrieved data.
         :return:
-          - ♀ if the person is labelled as a woman
-          - ♂ if the person is labelled as a man
-          - ∅ if the gender information is unavailable."""
+          - 'F' if the person is labelled as a woman
+          - 'M' if the person is labelled as a man
+          - 'MtF', 'FtM', 'intersex' or 'queer' if the person is transgender or genderqueer.
+          - 'unknown' if the gender information is unavailable."""
 
-        # Wikidata
-
-        for info_key, info in self.attributes.iteritems():
+        for info_key, info in six.iteritems(self.attributes):
             if 'gender' in info_key.lower():
                 genders = {
                     u'female': u'F',
@@ -149,6 +150,7 @@ class Person(Thing):
                     u'Q1097630': u'intersex',
                     u'genderqueer': u'queer'
                 }
+                # We take the first declared gender in the iterator (others -if any- are ignored)
                 gender = next(iter(info)) if isinstance(info, set) else info
                 return genders.get(gender[gender.find(':') + 1:], u'other')
         return u'unknown'
@@ -167,7 +169,7 @@ class Person(Thing):
         }
 
         unfiltered_names = {
-            k: v for k, v in self.attributes.iteritems()
+            k: v for k, v in six.iteritems(self.attributes)
             if 'name' in k or k in idiomatic_name_keys
         }
         names = {}
@@ -176,7 +178,7 @@ class Person(Thing):
             if isinstance(name, set):
                 filtered = filter(lambda x: x.count('-') < 5, name)
                 if filtered:
-                    names[name_type] = filtered if len(filtered)>1 else filtered.pop()
+                    names[name_type] = filtered if len(filtered) > 1 else filtered.pop()
             else:
                 if name.count('-') < 5:
 
@@ -184,16 +186,16 @@ class Person(Thing):
         return names
 
     def get_external_ids(self):
-        """
-        Get the external ids of the Person.
+        """This function returns a curated list of external ids of the Person.
+        :return: a dict of Person ids such as VIAF, Wikidata, IDREF, ARK,...
         """
         ids = {}
 
         same_as = self.attributes.get(u'owl:sameAs')
-        same_as = same_as if isinstance(same_as, set) else set([same_as])
+        same_as = same_as if isinstance(same_as, set) else {same_as}
 
         exact_match = self.attributes.get(u'skos:exactMatch')
-        exact_match = exact_match if isinstance(exact_match, set) else set([exact_match])
+        exact_match = exact_match if isinstance(exact_match, set) else {exact_match}
 
         external_ids = same_as.union(exact_match)
 
@@ -211,9 +213,11 @@ class Person(Thing):
 
         return ids
 
-    def get_works(self):
-        """Get the works of a person"""
-        #wdt:P1455
-        # http://purl.org/dc/terms/contributor
-
-        pass
+    # def get_works(self):
+    #     """This function returns the works of a person.
+    #     Not implemented yet.
+    #     """
+    #     # TODO
+    #     # wdt:P1455
+    #     # http://purl.org/dc/terms/contributor
+    #     raise NotImplementedError
