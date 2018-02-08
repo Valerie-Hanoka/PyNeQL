@@ -21,54 +21,7 @@ from pyneql.ontology.thing import Thing
 from pyneql.ontology.person import Person
 import pprint, ipdb
 
-
-endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
-
-thing = Thing(label=u"혁kστ혁ηjh혁kي혁ةsjdジアh", query_language=Lang.DEFAULT)
-thing.add_query_endpoint(Endpoint.wikidata)
-thing.query(strict_mode=True, check_type=False)
-
-expected_query = u"""
-PREFIX owl: <http://www.w3.org/2002/07/owl#> 
-PREFIX wd: <http://www.wikidata.org/entity/> 
-PREFIX schemaorg: <http://schema.org/> 
-PREFIX wdt_o: <http://www.wikidata.org/ontology#> 
-PREFIX dbo: <http://dbpedia.org/ontology/> 
-SELECT DISTINCT ?Thing ?pred ?obj WHERE 
-{ SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } 
-?Thing ?has_label "혁kστ혁ηjh혁kي혁ةsjdジアh"@en .
- ?Thing ?pred ?obj .
-  { ?Thing a schemaorg:Class  } UNION { ?Thing a owl:Thing  } UNION 
-  { ?Thing a schemaorg:Thing  } UNION { ?Thing a wd:Q35120  } UNION 
-  { ?Thing a owl:Class  } UNION { ?Thing a dbo:Thing  } UNION { ?Thing a wdt_o:Item  } .  
-  } LIMIT 1500
-"""
-
-
-
-import fuzzywuzzy
-fuzzywuzzy.fuzz.token_sort_ratio(thing.query_builder.queries[Endpoint.wikidata], expected_query)
-import ipdb; ipdb.set_trace()
-
-#thing = Person(full_name="Marguerite Duras", query_language=Lang.French)
-#thing = Book(gallica_url=u"http://gallica.bnf.fr/ark:/12148/bpt6k6258559w")
-
-thing = Book(
-    #title=u"Les Misérables",
-    #author=u"Charles Baudelaire",
-    gallica_url=u"http://gallica.bnf.fr/ark:/12148/bpt6k6258559w",
-    query_language=Lang.French,
-    endpoints=endpoints
-)
-
-
-thing.query(strict_mode=False, check_type=False)
-#thing.deepen_search()
-pprint.pprint(thing.attributes)
-import ipdb; ipdb.set_trace()
-
-
 
 
 #persons(db, endpoints)
@@ -85,7 +38,7 @@ def books(db, endpoints):
             book =  Book(gallica_url=row.get('idno'))
             book.add_query_endpoints(endpoints)
             book.query(check_type=False)
-            book.deepen_search()
+            book.find_more_about()
             pprint.pprint(book.attributes)
 
 #books(db, endpoints)

@@ -191,13 +191,13 @@ def test_thing_add_query_endpoints():
 
 
 def test_thing_deepen_search():
-    """Thing - deepen_search(): Should pass"""
+    """Thing - find_more_about(): Should pass"""
     endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
     thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
     thing.add_query_endpoints(endpoints)
     thing.query(strict_mode=True)
     attr_before_deep_search = len(thing.attributes)
-    thing.deepen_search()
+    thing.find_more_about()
     attr_after_deep_search = len(thing.attributes)
     assert attr_before_deep_search < attr_after_deep_search
 

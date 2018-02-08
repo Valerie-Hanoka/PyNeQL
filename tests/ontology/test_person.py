@@ -111,13 +111,13 @@ def test_thing_query_URL():
 
 
 def test_person_deepen_search():
-    """Person - deepen_search(): Should pass"""
+    """Person - find_more_about(): Should pass"""
     endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
     joeystarr = Person(full_name=u'Didier Morville', query_language=Lang.French)
     joeystarr.add_query_endpoints(endpoints)
     joeystarr.query(strict_mode=True)
     attr_before_deep_search = len(joeystarr.attributes)
-    joeystarr.deepen_search()
+    joeystarr.find_more_about()
     attr_after_deep_search = len(joeystarr.attributes)
     assert attr_before_deep_search < attr_after_deep_search
 

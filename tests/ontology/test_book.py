@@ -121,7 +121,7 @@ def test_book_incomplete():
 ###################################################
 #
 #def test_book_deepen_search():
-#    """Book - deepen_search(): Should pass"""
+#    """Book - find_more_about(): Should pass"""
 #    raise NotImplementedError
 
 

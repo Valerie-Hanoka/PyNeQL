@@ -340,11 +340,11 @@ class Thing(object):
         # what we will have TODO is to filter them properly.
         unfiltered_wikimedia_things = [t for t in things.keys() if 'wd:' in t]
         for unfiltered_wikimedia_thing in unfiltered_wikimedia_things:
-            things[unfiltered_wikimedia_thing]["validated"] = 1
+            things[unfiltered_wikimedia_thing][u'validated'] = 1
 
         for thing, thing_attribute in things.items():
             # Removing wrong things and adding the attributes of the correct thing
-            if check_type and not thing_attribute.get('validated', False):
+            if check_type and not thing_attribute.get(u'validated', False):
                 things.pop(thing)
             else:
                 # Identity
@@ -365,7 +365,7 @@ class Thing(object):
             things[self.__dict__.get('has_url')] = reduce(merge_two_dicts_in_sets, result_dict_list)
             # If we retrieved the thing using its URL,
             # we are sure the results correspond to the right thing.
-            things[self.__dict__.get('has_url')]["validated"] = 1
+            things[self.__dict__.get('has_url')][u'validated'] = 1
         return things
 
     def _process_any_results(self, subj, pred, obj, check_type=True):
@@ -387,7 +387,7 @@ class Thing(object):
                 value = dict_results[obj]
                 properties = self.voc_attributes.get(values_to_check[value], False)
                 if properties and dict_results[pred] in properties:
-                    things[thing]["validated"] = 1
+                    things[thing][u'validated'] = 1
 
             shortened_result = {dict_results[pred]: dict_results[obj]}
             things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
@@ -398,7 +398,7 @@ class Thing(object):
     #      Playing with the object
     # --------------------------------------- #
 
-    def deepen_search(self, seen=set([])):
+    def find_more_about(self, seen=set([])):
         """Deepens the search
         TODO: document"""
 
@@ -425,7 +425,7 @@ class Thing(object):
             same_entity.add_query_endpoints(self.endpoints)
             same_entity.query()
             self.attributes = merge_two_dicts_in_sets(self.attributes, same_entity.attributes)
-        self.deepen_search(seen)
+        self.find_more_about(seen)
 
     def get_attributes_with_keyword(self, keyword):
         """ For debuging purposes """
