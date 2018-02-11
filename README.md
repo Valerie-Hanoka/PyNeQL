@@ -22,6 +22,7 @@ things as Named Entities.
 This module aims to provide a very simple way to query named entities by their name, and retrieve
 a maximum of information from different SPARQL endpoints.
 
+You can [read the docs](https://pyneql.readthedocs.io/) here.
 
 Table of Contents
 -----------------  
