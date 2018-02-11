@@ -86,6 +86,9 @@ class Thing(object):
         # Adding Endpoints
         self.endpoints = set(endpoints) if endpoints else set([])
 
+        # Initializing results set
+        self.attributes = {}
+
 
     # --------------------------------------- #
     #           QUERIES PREPARATION
