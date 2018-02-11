@@ -74,6 +74,7 @@ class Person(Thing):
         """For a given information type (i.e death, birth), this function
         returns all information that is available in the linked data about the
         life event of the person (e.g: date and/or place).
+
         :param life_event: An event of the life of a person (e.g.: birth, death)
         :return: a dict of information concerning the given life event
         """
@@ -117,14 +118,16 @@ class Person(Thing):
 
     def get_death_info(self):
         """This function returns all information that is available in the linked data
-         about the death of the person (e.g: date and/or place).
+        about the death of the person (e.g: date and/or place).
+
         :return: a dict of information concerning the death of the person
         """
         return self._get_life_info('death')
 
     def get_birth_info(self):
         """This function returns all information that is available in the linked data
-         about the birth of the person (e.g: date and/or place).
+        about the birth of the person (e.g: date and/or place).
+
         :return: a dict of information concerning the birth of the person
         """
         return self._get_life_info('birth')
@@ -132,11 +135,13 @@ class Person(Thing):
     def get_gender(self):
         """This function returns the gender of the person.
         We assume that there is only one gender available for a person in the retrieved data.
+
         :return:
-          - 'F' if the person is labelled as a woman
-          - 'M' if the person is labelled as a man
-          - 'MtF', 'FtM', 'intersex' or 'queer' if the person is transgender or genderqueer.
-          - 'unknown' if the gender information is unavailable."""
+
+        - 'F' if the person is labelled as a woman
+        - 'M' if the person is labelled as a man
+        - 'MtF', 'FtM', 'intersex' or 'queer' if the person is transgender or genderqueer.
+        - 'unknown' if the gender information is unavailable."""
 
         for info_key, info in six.iteritems(self.attributes):
             if 'gender' in info_key.lower():
@@ -157,7 +162,8 @@ class Person(Thing):
 
     def get_names(self):
         """This function returns all information that is available in the linked data
-         about the name of the person (e.g: birth name, family name, name in the native language,...).
+        about the name of the person (e.g: birth name, family name, name in the native language,...).
+
         :return: a dict of information concerning the names of the person.
         """
 
@@ -187,6 +193,7 @@ class Person(Thing):
 
     def get_external_ids(self):
         """This function returns a curated list of external ids of the Person.
+
         :return: a dict of Person ids such as VIAF, Wikidata, IDREF, ARK,...
         """
         ids = {}

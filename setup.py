@@ -19,7 +19,23 @@ setup(
     license=license,
     setup_requires=['nose'],
     tests_require=['coverage'],
-    install_requires=['nose', 'python-coveralls', 'six', 'aenum', 'requests', 'fuzzywuzzy', 'python-dateutil'],
+    install_requires=[
+        'nose',
+        'python-coveralls',
+        'six',
+        'aenum',
+        'requests',
+        'fuzzywuzzy',
+        'python-dateutil'
+    ],
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Topic :: Utilities",
+        "Topic :: Text Processing :: Linguistic"
+        "License :: OSI Approved :: BSD License",
+        "Programming Language :: Python :: 2.7"
+    ],
+    keywords="SPARQL semantic NLP named entity",
     packages=find_packages(exclude=('tests', 'docs'))
 )
 

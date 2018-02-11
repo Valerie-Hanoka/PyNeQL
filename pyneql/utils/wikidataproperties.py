@@ -9,8 +9,10 @@ RE_WIKIDATA_PREDICATE = re.compile('.*/(?P<wdtp>P[0-9]+)\s*$')
 
 def translate_to_legible_wikidata_properties(wikidata_property):
     """Translates a wikidata property code into a legible property.
+
     >>>print translate_to_legible_wikidata_properties(u'P214')
     >>>'VIAF_ID_(P214)'
+
     """
     contains_wikidata_prop = re.match(RE_WIKIDATA_PREDICATE, wikidata_property)
     if contains_wikidata_prop:

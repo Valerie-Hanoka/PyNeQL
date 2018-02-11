@@ -10,7 +10,6 @@ from aenum import Enum
 
 class Endpoint(Enum):
     """ List of the supported endpoints """
-    DEFAULT = u'http://dbpedia.org/sparql'
 
     # Generic information
     dbpedia = u'http://dbpedia.org/sparql'
@@ -20,13 +19,18 @@ class Endpoint(Enum):
     # Bibliographic information
     bnf = u'http://data.bnf.fr/sparql'
 
-
     # Lexical info
     # babelnet = u'http://babelnet.org/sparql/'
+
+    # Default Endpoint
+    DEFAULT = u'http://dbpedia.org/sparql'
+
+
 
 def is_endpoint_multilingual(endpoint):
     """ Some endpoints are multilinguals and requires the language information
     to be given during a query.
+
     :param endpoint: An endpoint
     :return: True if the endpoint serves multilingual information, False otherwise.
     """
