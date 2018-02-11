@@ -10,7 +10,7 @@ Currently supported languages are listed in the class ``pyneql.utils.enum.Langua
 Usage
 -----
 
-You can use a language by importing this class and using its correspondance in the enumeration::
+You can use a language by importing this class and using its correspondence in the enumeration::
 
     from pyneql.utils.enum import LanguagesIso6391 as Lang
     my_language = Lang.Ukrainian

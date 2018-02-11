@@ -61,7 +61,7 @@ Executing the function add some more
 176
 
 This feature just takes the URIs of the first result set which are the objects
-of identity predicates (``skos:exactMatch``, ``owl:sameAs``) and retreive the associated RDF triples.
+of identity predicates (``skos:exactMatch``, ``owl:sameAs``) and retrieve the associated RDF triples.
 
 
 .. image:: ../../illustration_delimitante.png

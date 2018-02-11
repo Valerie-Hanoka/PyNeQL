@@ -6,7 +6,7 @@ For the moment, it is possible to launch a query with either:
 
 - her/his full_name;
 - her/his first_name *and* last_name;
-- the URL/URI correpsonding to the person.
+- the URL/URI corresponding to the person.
 
 
 .. image:: ../../illustration_delimitante.png
@@ -79,7 +79,7 @@ Extended search
 
 If the element we are looking for is ubiquitous in the Semantic Web, we may
 want to search further. The function ``find_more_about()`` is doing that.
-Before the exectution of the function ``find_more_about()``, we had 15 RDF predicates having values for bell hooks:
+Before the execution of the function ``find_more_about()``, we had 15 RDF predicates having values for bell hooks:
 E
 This feature just takes the URIs of the first result set which identifies the
 same person (identity predicates ``skos:exactMatch``, ``owl:sameAs``)
