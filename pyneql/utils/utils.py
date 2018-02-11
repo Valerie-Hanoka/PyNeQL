@@ -24,7 +24,7 @@ def merge_two_dicts_in_lists(x, y):
     """Given two dicts (with string keys),
     merge them into a new dict as a deep copy.
     In cases of duplicate keys, values are appended in lists.
-    Ex.:
+
     >>> dic_y = {'both': {'both_y_diff' : 'bar', 'both_same': 'same_y'}, 'only_y': 'only_y'}
     >>> dic_x = {'both': {'both_x_diff' : 'foo', 'both_same': 'same_x'}, 'only_x': {'only_x' : 'baz'}}
     >>> merge_two_dicts(dic_x, dic_y)
@@ -34,6 +34,7 @@ def merge_two_dicts_in_lists(x, y):
     >>>      'both_y_diff': 'bar'},
     >>>  'only_x': {'only_x': 'baz'},
     >>>  'only_y': 'only_y'}
+
     :param x: First dictionary
     :param y: Second dictionary
     :return: The recursive merge of x and y, appending values in list in case of duplicate keys."""
@@ -62,7 +63,7 @@ def merge_two_dicts_in_sets(x, y):
     """Given two dicts (with string keys),
     merge them into a new dict as a deep copy.
     In cases of duplicate keys, values are added into a set.
-    Ex.:
+
     >>> dic_y = {'both': {'both_y_diff' : 'bar', 'both_same': 'same_y'}, 'only_y': 'only_y'}
     >>> dic_x = {'both': {'both_x_diff' : 'foo', 'both_same': 'same_x'}, 'only_x': {'only_x' : 'baz'}}
     >>> merge_two_dicts(dic_x, dic_y)
@@ -72,6 +73,7 @@ def merge_two_dicts_in_sets(x, y):
     >>>      'both_y_diff': 'bar'},
     >>>  'only_x': {'only_x': 'baz'},
     >>>  'only_y': 'only_y'}
+
     :param x: First dictionary
     :param y: Second dictionary
     :return: The recursive merge of x and y, appending values in list in case of duplicate keys."""
@@ -99,6 +101,7 @@ def merge_two_dicts_in_sets(x, y):
 # ---- Stringology ---- #
 def normalize_str(s):
     """ Remove leading and trailing and multiple whitspaces from a string s.
+
     :param s: a string or unicode
     :return: the unicode normalised version of s
     """
@@ -113,7 +116,34 @@ def normalize_str(s):
 RE_CONTAINS_A_DATE = re.compile('^[0-9\-]+[0-9TZ:\-]*$')
 def contains_a_date(s):
     """ Detects if a string contains a date.
+
     :param s: a string
     :return: True if s contains a date, False otherwise.
     """
     return RE_CONTAINS_A_DATE.search(s)
+
+
+# ----- Eye sugar ----- #
+def pretty_print_utf8(result_dataset):
+    """For debug & documentation purpose"""
+    for key in sorted(result_dataset.keys()):
+        utf8_values = recursive_pretty_print(result_dataset[key])
+        print("%s: ([ %s ])," % (unicode(key).encode('utf8'), utf8_values))
+
+def recursive_pretty_print(element):
+
+    utf_8 = ""
+    if isinstance(element, set) or isinstance(element, list):
+        for e in element:
+            if utf_8:
+                utf_8 = ','.join([recursive_pretty_print(e), utf_8])
+            else:
+                utf_8 = recursive_pretty_print(e)
+    else:
+        try:
+            int(element)
+        except:
+            utf_8 = '"%s"' % unicode(element).encode('utf8')
+        else:
+            utf_8 = '%s' % unicode(element).encode('utf8')
+    return utf_8

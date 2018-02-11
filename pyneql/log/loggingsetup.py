@@ -19,10 +19,10 @@ def setup_logging(
 ):
     """
     Setup logging configuration
+
     :param default_path: Default path of the json logging configuration file
     :param default_level:
     :param env_key:
-    :return:
     """
     path = default_path
     value = os.getenv(env_key)
@@ -39,6 +39,7 @@ def setup_logging(
 def highlight_str(s, highlight_type=None):
     """
     Highlighter for logging using ANSI escape code.
+
     :param s: the element to highlight in the logs
     :param highlight_type: types of highlight
     :return: an highlighted string

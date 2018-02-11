@@ -83,8 +83,9 @@ class Thing(object):
         self.query_builder = GenericSPARQLQuery()
         self.query_language = query_language
 
-        self.endpoints = endpoints if endpoints else set([])
-        self.attributes = {}
+        # Adding Endpoints
+        self.endpoints = set(endpoints) if endpoints else set([])
+
 
     # --------------------------------------- #
     #           QUERIES PREPARATION
@@ -94,6 +95,7 @@ class Thing(object):
 
     def add_query_endpoints(self, endpoints):
         """This function allows to add a list of endpoints to which the Thing queries will be sent.
+
         :param endpoints: A list of endpoints we wish to query for the construction of the current Thing.
         """
         map(self.add_query_endpoint, endpoints)
@@ -103,6 +105,7 @@ class Thing(object):
         Any ontology object (here, a Thing) will be constructed through
         SPARQL queries send to some specified SPARQL endpoints.
         This function allows to add a single endpoint for the query.
+
         :param endpoint: An endpoint we wish to query for the construction of the current Thing.
         """
         self.endpoints.add(endpoint)
@@ -120,27 +123,32 @@ class Thing(object):
         :param check_type: Boolean. Check the type of the object (e.g: Book, Person, Location,…)
         directly in the SPARQL queries.
         If True, the restriction of the object's type is done in the query.
-        For instance, if the object is a Book, activating strict_mode will build queries where the object
+        For instance, if the object is a Book, activating type checking will build queries where the object
         to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
-        "[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .
+        ``[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .``
 
         :param strict_mode: Boolean. Check the type of the object's attributes (e.g: label, first name,…)
         directly in the SPARQL queries.
         If True, the predicates of the triplet whose values are instantiated will have their types checked
         against the allowed types listed in self.voc_attributes.
         Let's take an example:
-        We are looking for a Thing whose attribute 'label' is "አዲስ አበባ".
-        • Non strict mode will have its query restrained to elements satisfying
-          the triplet '?Thing ?has_label "አዲስ አበባ".'.
-          The predicate is left undetermined ("?has_label" is a variable).
-        • In strict mode, we are strict about the types of predicates of the triplet.
-          For the current class ('Thing'), those predicates will be listed in
-          self.voc_attributes['has_label'] and combined in the SPARQL query.
-          Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
-          >>> print(self.voc_attributes['has_label'])
-          >>> [u'rdfs:label', u'wdt:P1813']
-          So in strict_mode, the query will be constrained to:
-          "[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]
+        We are looking for a Thing whose *label* is "አዲስ አበባ".
+
+        - Non strict mode will have its query restrained to elements satisfying
+        the triplet ``?Thing ?has_label "አዲስ አበባ".``.
+        The predicate is left undetermined (``?has_label`` is a variable).
+
+        - In strict mode, we are strict about the types of predicates of the triplet.
+        For the current class, those predicates will be listed in
+        self.voc_attributes['has_label'] and combined in the SPARQL query.
+        Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
+
+        >>> print(self.voc_attributes['has_label'])
+        >>> [u'rdfs:label', u'wdt:P1813']
+
+        So in strict_mode, the query will be constrained to:
+        
+        ``[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]``
         """
 
         self.query_builder.reset_queries()
@@ -178,30 +186,37 @@ class Thing(object):
         Updates the query_builder of the object.
         The queries options relies on the dictionaries contained in pyneql/utils/vocabulary.py.
 
-        :param check_type: Boolean. Check the type of the object (e.g: Book, Person, Location,…)
+        :param check_type: Boolean.
+        Check the type of the object (e.g: Book, Person, Location,…)
         directly in the SPARQL queries.
         If True, the restriction of the object's type is done in the query.
-        For instance, if the object is a Book, activating strict_mode will build queries where the object
+        For instance, if the object is a Book, activating type checking will build queries where the object
         to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
-        "[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .
+        ``[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .``
 
-        :param strict_mode: Boolean. Check the type of the object's attributes (e.g: label, first name,…)
+        :param strict_mode: Boolean.
+        Check the type of the object's attributes (e.g: label, first name,…)
         directly in the SPARQL queries.
         If True, the predicates of the triplet whose values are instantiated will have their types checked
-        against the allowed types listed in self.voc_attributes.
+        against the allowed types listed in ``self.voc_attributes``.
         Let's take an example:
-        We are looking for a Thing whose attribute 'label' is "አዲስ አበባ".
-        • Non strict mode will have its query restrained to elements satisfying
-          the triplet '?Thing ?has_label "አዲስ አበባ".'.
-          The predicate is left undetermined ("?has_label" is a variable).
-        • In strict mode, we are strict about the types of predicates of the triplet.
-          For the current class ('Thing'), those predicates will be listed in
-          self.voc_attributes['has_label'] and combined in the SPARQL query.
-          Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
-          >>> print(self.voc_attributes['has_label'])
-          >>> [u'rdfs:label', u'wdt:P1813']
-          So in strict_mode, the query will be constrained to:
-          "[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]
+        We are looking for a Thing whose *label* is "አዲስ አበባ".
+
+        - Non strict mode will have its query restrained to elements satisfying
+        the triplet ``?Thing ?has_label "አዲስ አበባ".``.
+        The predicate is left undetermined (``?has_label`` is a variable).
+
+        - In strict mode, we are strict about the types of predicates of the triplet.
+         For the current class, those predicates will be listed in
+         ``self.voc_attributes['has_label']`` and combined in the SPARQL query.
+         Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
+
+         >>> print(self.voc_attributes['has_label'])
+         >>> [u'rdfs:label', u'wdt:P1813']
+
+         So in strict_mode, the query will be constrained to:
+
+         ``[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]``
         """
         if check_type:
             # Restricting the query to elements of the current type
@@ -281,30 +296,39 @@ class Thing(object):
         the types of the RDF triples predicates and retrieve the results.
         The queries options relies on the dictionaries contained in pyneql/utils/vocabulary.py.
 
-        :param check_type: Boolean. Check the type of the object (e.g: Book, Person, Location,…)
-        directly in the SPARQL queries.
-        If True, the restriction of the object's type is done in the query.
-        For instance, if the object is a Book, activating strict_mode will build queries where the object
-        to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
-        "[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .
+        :param check_type: Boolean.
 
-        :param strict_mode: Boolean. Check the type of the object's attributes (e.g: label, first name,…)
-        directly in the SPARQL queries.
+        Check the type of the object (e.g: Book, Person, Location,…) directly in the SPARQL queries.
+        If True, the restriction of the object's type is done in the query.
+        For instance, if the object is a Book, activating type checking will build queries where the object
+        to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
+        ``[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .``
+
+        :param strict_mode: Boolean.
+
+        Check the type of the object's attributes (e.g: label, first name,…) directly in the SPARQL queries.
         If True, the predicates of the triplet whose values are instantiated will have their types checked
         against the allowed types listed in self.voc_attributes.
-        Let's take an example:
-        We are looking for a Thing whose attribute 'label' is "አዲስ አበባ".
-        • Non strict mode will have its query restrained to elements satisfying
-          the triplet '?Thing ?has_label "አዲስ አበባ".'.
-          The predicate is left undetermined ("?has_label" is a variable).
-        • In strict mode, we are strict about the types of predicates of the triplet.
-          For the current class ('Thing'), those predicates will be listed in
-          self.voc_attributes['has_label'] and combined in the SPARQL query.
-          Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
-          >>> print(self.voc_attributes['has_label'])
-          >>> [u'rdfs:label', u'wdt:P1813']
-          So in strict_mode, the query will be constrained to:
-          "[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]
+
+        :Example:
+
+        We are looking for a Thing whose *label* is "አዲስ አበባ".
+
+        - Non strict mode will have its query restrained to elements satisfying
+        the triplet ``?Thing ?has_label "አዲስ አበባ".``.
+        The predicate is left undetermined (``?has_label`` is a variable).
+
+        - In strict mode, we are strict about the types of predicates of the triplet.
+        For the current class, those predicates will be listed in
+        ``self.voc_attributes['has_label']`` and combined in the SPARQL query.
+        Here, for the example, we set 'has_label' allowed the RDF predicates 'rdfs:label' and u'wdt:P1813'.
+
+        >>> print(self.voc_attributes['has_label'])
+        >>> [u'rdfs:label', u'wdt:P1813']
+
+        So in strict_mode, the query will be constrained to:
+
+        ``[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]``
         """
 
         self._build_query(strict_mode, check_type)
@@ -320,7 +344,7 @@ class Thing(object):
         :param check_type: Boolean. Check the type of the object (e.g: Book, Person, Location,…)
         in the SPARQL queries results. All the results which does not have the proper type are excluded.
         If True, the restriction of the object's type is done in the query.
-        For instance, if the object is a Book, activating strict_mode will build queries where the object
+        For instance, if the object is a Book, activating type checking will build queries where the object
         to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
         "[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .
         """
@@ -387,7 +411,7 @@ class Thing(object):
                 value = dict_results[obj]
                 properties = self.voc_attributes.get(values_to_check[value], False)
                 if properties and dict_results[pred] in properties:
-                    things[thing][u'validated'] = 1
+                    things[thing] = {u'validated': 1}
 
             shortened_result = {dict_results[pred]: dict_results[obj]}
             things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
@@ -429,6 +453,7 @@ class Thing(object):
 
     def get_attributes_with_keyword(self, keyword):
         """ For debuging purposes """
+        #TODO: Regexp search
         return {k: v for k, v in self.attributes.items() if keyword in k}
 
     def get_external_ids(self):

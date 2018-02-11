@@ -40,7 +40,7 @@ RE_IS_STRING_A_NUMBER = re.compile('^\s*"[0-9]*"\s*$')
 
 class RDFTriple(object):
     """
-    A generic RDF triple that can be used for querying in a select statement.
+    A generic RDF triple representation which can be used for querying in a select statement.
     """
     setup_logging()
 
@@ -89,9 +89,14 @@ class RDFTriple(object):
         will be send to different endpoints. It is thus desirable to tell,
         for the given triplet, if it is not usable in an endpoint.
         For instance, wikidata may need specific triplets whereas other endpoints wont.
-        E.g:
-           -'?x wdt:P31 wd:Q5' (wikidata specific) may have keep_only_endpoints=[Endpoint.wikidata]
-           -'?Person a foaf:Person' may have excluded_endpoints=[Endpoint.wikidata]
+
+        :Example:
+
+        - ``?x wdt:P31 wd:Q5`` (wikidata specific) may have keep_only_endpoints=[Endpoint.wikidata]
+        - ``?Person a foaf:Person`` may have excluded_endpoints=[Endpoint.wikidata]
+
+        :param excluded_endpoints: List of endpoints to which the RDF triple is **not** to be sent
+        :param keep_only_endpoints: List of the **only** endpoints to which the RDF triple is to be sent
         """
 
         # Only one of both is defined

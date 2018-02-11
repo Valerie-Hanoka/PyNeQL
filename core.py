@@ -17,9 +17,24 @@ from pyneql.query.querybuilder import GenericSPARQLQuery
 from pyneql.utils.namespace import NameSpace
 from fuzzywuzzy import fuzz
 
-from pyneql.ontology.thing import Thing
-from pyneql.ontology.person import Person
 import pprint, ipdb
+
+from pyneql.ontology.person import Person
+
+
+from pyneql.utils.utils import pretty_print_utf8
+
+
+from pyneql.ontology.thing import Thing
+from pyneql.utils.endpoints import Endpoint
+from pyneql.utils.enum import LanguagesIso6391 as Lang
+
+beauvoir = Person(full_name="Simone de Beauvoir", endpoints=[Endpoint.dbpedia])
+
+
+
+ipdb.set_trace()
+
 
 db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
 

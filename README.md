@@ -165,7 +165,7 @@ vivian_qu.get_birth_info()
 I plan to develop other classes that will allow safe query of named entites of type 
 Location, Books, TimePeriods,...
 
-The class Thing will only be used as a common parents for all other named entities classes. 
+The class Thing will only be used as a common parent for all other named entities classes. 
 As it is not safe to use, I describe it there just for fun.
 
 
@@ -180,7 +180,7 @@ addis_abeba = Thing(label=u'አዲስ አበባ', query_language=Lang.Amharic)
 addis_abeba.add_query_endpoint(Endpoint.dbpedia)
 addis_abeba.query(strict_mode=True)
 
-# If is possible to access information via keyword search
+# It is possible to access information via keyword search
 addis_abeba.get_attributes_with_keyword('abel')
 # {u'rdfs:label': set([u'Adas Ababa',
 #                      u'Addis Ababa',

@@ -27,7 +27,7 @@ RE_URI = re.compile(
 class NameSpace(Enum):
     """
     Common SPARQL prefixes.
-    See https://prefix.cc/
+    See also https://prefix.cc/
     """
     bd = u'http://www.bigdata.com/rdf#'
     bds = u'http://www.bigdata.com/rdf/search#'
@@ -162,9 +162,11 @@ class NameSpace(Enum):
 #     return uri.rpartition('/')[-1]
 
 def get_shortened_uri(uri):
-    """ Return a shortened URI if the namespace is known. E.g.:
+    """ Return a shortened URI if the namespace is known.
+
     >>> get_shortened_uri("http://xmlns.com/foaf/0.1/surname")
     >>> "foaf:surname"
+
     """
     is_uri = RE_URI.match(uri)
     if is_uri:
@@ -178,13 +180,17 @@ def get_shortened_uri(uri):
 def decompose_prefix(prefix):
     """
     Decomposes a prefix in its parts.
-    E.g.:
-         gn: <http://www.geonames.org/ontology#>
-         will be decomposed in:
-           - the abbreviation 'gn'
-           - the url 'http://www.geonames.org/ontology#'
+
+    :Example:
+
+    ``gn: <http://www.geonames.org/ontology#>`` will be decomposed in:
+
+    - the abbreviation ``gn``
+    - the url ``http://www.geonames.org/ontology#``
+
     :param prefix: A well-formed SPARQL prefix
     :return: A parsed SPARQL prefix: (abbreviation, url)
+    :raises NameSpaceException: The prefix is ill-formed
     """
     is_well_formed = RE_NAMESPACE_CHECKER.match(prefix)
 
@@ -201,7 +207,7 @@ def get_consistent_namespace(abbreviation, namespace):
     Given an abbreviation (e.g.: "foaf") and a namespace
     (e.g.: "http://xmlns.com/foaf/0.1/") we check that the
     mapping abbreviation: namespace is in the vocabulary.
-    This function raises a NameSpaceException if (at least)
+    This function raises a :class:`NameSpaceException` if (at least)
     one of the element is in the vocabulary but the other does
     not corresponds to what is given in the vocabulary.
     Returns the corresponding NameSpace if it exists or None.
@@ -209,6 +215,7 @@ def get_consistent_namespace(abbreviation, namespace):
     :param abbreviation: A SPARQL PREFIX abbreviation (e.g.: "foaf")
     :param namespace: A SPARQL PREFIX namespace (e.g.: "http://xmlns.com/foaf/0.1/")
     :return: The corresponding NameSpace if it exists or None
+    :raises NameSpaceException: The prefix cannot be dynamically added to the vocabulary
     """
 
     # Getting the voc.NameSpace corresponding to the namespace
@@ -227,7 +234,7 @@ def get_consistent_namespace(abbreviation, namespace):
         return abbr_ns  # It's a match ! We return the corresponding voc.NameSpace
 
     raise NameSpaceException(
-        u"In the stadard vocabulary, %s does not correspond to %s."
+        u"In the standard vocabulary, %s does not correspond to %s."
         u"This could lead to inconsistencies."
         u"Check your prefixes again or contact the author." % (abbreviation, namespace))
 
@@ -235,6 +242,7 @@ def get_consistent_namespace(abbreviation, namespace):
 def add_namespace(prefix, url):
     """
     Add an element to NameSpace enumeration, and returns it.
+
     :param prefix: The name of the NameSpace to be added
     :param url: The url of the NameSpace to be added
     :return: The added NameSpace element
