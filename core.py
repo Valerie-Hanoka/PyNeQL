@@ -24,27 +24,26 @@ from pyneql.ontology.person import Person
 
 from pyneql.utils.utils import pretty_print_utf8
 
-
-from pyneql.ontology.thing import Thing
+from pyneql.ontology.person import Person
 from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 
-import re
+person = Person(
+    first_name="Bill",
+    last_name="Gates",
+    endpoints=[Endpoint.wikidata, Endpoint.dbpedia])
 
-person = Person(full_name=u'Marguerite Duras', query_language=Lang.French)
-person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
-person.query(strict_mode=False)
+person.query()
 
-expected_death = {
-    #'date': datetime.datetime(1996, 3, 3, 0, 0),
-    'other': set([u'1996-03-03+02:00', u'http://data.bnf.fr/date/1996/']),
-    'place': set([u'Paris',
-                  u'Paris, France',
-                  u'dbpedia:Paris',
-                  u'dbpedia_fr:6e_arrondissement_de_Paris'
-                  ])
-}
-person.get_death_info() == expected_death
+# Accessing the raw results
+
+
+# Getting all the person's known names
+person.get_names()
+
+# What is he doing ?
+person.get_attributes_with_keyword('title')
+
 
 ipdb.set_trace()
 
