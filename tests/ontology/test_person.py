@@ -128,11 +128,10 @@ def test_person_bnf_query_strict_False():
 
 def test_thing_query_URL():
     """Person - URL query - : Should pass """
-    person = Person(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    person = Person(url='http://dbpedia.org/resource/Charles_Baudelaire')
     person.add_query_endpoints([Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf])
     person.query(strict_mode=True)
-    assert u'http://viaf.org/viaf/17218730' in person.attributes.get(u'owl:sameAs')
-
+    assert u'http://dbpedia.org/resource/Charles_Baudelaire' in person.attributes.get(u'owl:sameAs')
 
 ##################################################
 #                 OTHER METHODS

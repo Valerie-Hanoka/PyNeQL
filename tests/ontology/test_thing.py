@@ -172,10 +172,10 @@ def test_thing_bnf_query_strict_False():
 
 def test_thing_query_URL():
     """Thing - URL query - : Should pass """
-    thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#about')
     thing.add_query_endpoints([Endpoint.bnf])
     thing.query(strict_mode=True)
-    assert u'http://viaf.org/viaf/17218730' in thing.attributes.get(u'owl:sameAs')
+    assert u'http://data.bnf.fr/ark:/12148/cb118905823#about' in thing.attributes.get(u'owl:sameAs')
 
 
 ####################################################
@@ -193,7 +193,7 @@ def test_thing_add_query_endpoints():
 def test_thing_deepen_search():
     """Thing - find_more_about(): Should pass"""
     endpoints = [Endpoint.dbpedia_fr, Endpoint.dbpedia, Endpoint.wikidata, Endpoint.bnf]
-    thing = Thing(url='http://data.bnf.fr/ark:/12148/cb118905823#foaf:Person')
+    thing = Thing(url='http://dbpedia.org/resource/Charles_Baudelaire')
     thing.add_query_endpoints(endpoints)
     thing.query(strict_mode=True)
     attr_before_deep_search = len(thing.attributes)
