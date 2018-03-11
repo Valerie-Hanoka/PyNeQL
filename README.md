@@ -47,11 +47,7 @@ Table of Contents
 You do not want to use this in production.**
 
 
-The easiest way to install PyNeQL is via `pip`
-
-    pip install pyneql 
-
-Alternatively, you can install PyNeQL by cloning the project to your local directory
+You can install PyNeQL by cloning the project to your local directory
 
     git clone https://github.com/Valerie-Hanoka/PyNeQL.git
 
@@ -59,6 +55,8 @@ run `setup.py`
 
     python setup.py install
 
+
+I plan to submit it to PyPI soon.
 
 
 ### Usage
