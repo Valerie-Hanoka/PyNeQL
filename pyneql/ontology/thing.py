@@ -22,17 +22,22 @@ from pyneql.utils.enum import (
     LanguagesIso6391 as Lang,
 )
 
-from pyneql.utils.namespace import get_shortened_uri
+from pyneql.utils.namespace import (
+    get_shortened_uri,
+    get_expended_uri
+)
 from pyneql.utils.utils import (
     QueryException,
     merge_two_dicts_in_sets
 )
 
-from pyneql.utils.utils import normalize_str
+from pyneql.utils.utils import (
+    normalize_str,
+    is_listlike
+)
 
 from functools import reduce
-import itertools
-
+from itertools import chain
 
 class Thing(object):
     """
@@ -43,6 +48,7 @@ class Thing(object):
 
     # Query
     query_builder = None
+    query_limit = None
     endpoints = None
 
     # Results
@@ -61,8 +67,18 @@ class Thing(object):
             label=None,
             url=None,
             endpoints=None,  # SPARQL endpoints where the query should be sent
+            limit=1500,
             class_name=u'Thing'
             ):
+        """
+
+        :param query_language: The language of the query
+        :param label: The label which should be queried
+        :param url: The URL/URI of the Semantic Web object we wish to query
+        :param endpoints: The endoints where the query should be send
+        :param limit: The limit puts an upper bound on the number of solutions returned by the query that will be stored.
+        :param class_name: The name of the current class
+        """
 
         if not isinstance(query_language, Lang):
             raise QueryException("The language of the query must be of type enum.LanguagesIso6391.")
@@ -81,6 +97,7 @@ class Thing(object):
         }
 
         self.query_builder = GenericSPARQLQuery()
+        self.query_limit = limit
         self.query_language = query_language
 
         # Adding Endpoints
@@ -172,22 +189,46 @@ class Thing(object):
         self.query_builder.add_result_arguments(wanna_know)
 
     def _build_url_query(self):
-        """If the current object is already identified by an URL/URI, we can unambiguously query it.
-        The URL becomes the subject of our RDF triple.
+        """If the current object is already identified by an URL/URI or a list of URL/URIs,
+         we can unambiguously query it/them.
+        The URL(s) becomes the subject(s) of our RDF triple.
         """
-        self.query_builder.add_query_triple(
-            RDFTriple(
-                subject=self.has_url,
-                predicate=self.args['predicate'],
-                object=self.args['object'],
-                language=self.query_language
+        if is_listlike(self.has_url):
+            # We have a list/set/tuple of URLs: the RDF triple will be:
+            # `{ <URL1> ?pred ?obj  } UNION { <URL2> ?pred ?obj  } .`
+            to_unite = set([])
+            for url in self.has_url:
+                to_unite.add(
+                    RDFTriple(
+                        subject=url,
+                        predicate=self.args['predicate'],
+                        object=self.args['object'],
+                        language=self.query_language
+                    )
+                )
+            
+                self.query_builder.add_query_alternative_triples(to_unite)
+
+        else:
+            # We have a simple URL: the RDF triple will be:
+            # `<URL> ?pred ?obj .`
+            self.query_builder.add_query_triple(
+                RDFTriple(
+                    subject=self.has_url,
+                    predicate=self.args['predicate'],
+                    object=self.args['object'],
+                    language=self.query_language
+                )
             )
-        )
+
+
 
     def _build_standard_query(self, entities_names, check_type=True, strict_mode=False):
         """
         Updates the query_builder of the object.
         The queries options relies on the dictionaries contained in pyneql/utils/vocabulary.py.
+
+        :param entities_names: the class variables beginning with 'has_' which have a value instantiated
 
         :param check_type: Boolean.
         Check the type of the object (e.g: Book, Person, Location,…)
@@ -239,45 +280,14 @@ class Thing(object):
         # Adding query delimiters, that are the parameters given for query
         # (i.e stored in the instance variables beginning with "has_").
         for entity_name in entities_names:
-            entity_value = normalize_str(self.__dict__.get(entity_name, None))
-            # The instance has an instantiated value for a 'has_…' variable. This value will be the
-            # object of an RDF triplet.
-            if entity_value:
-                try:
-                    # For dates elements, the triplet literal must be formatted without quotes
-                    obj = int(entity_value)
-                except ValueError:
-                    if entity_value[0:7] == u'http://':
-                        obj = u'%s' % entity_value  # The entity is a raw URL
-                    else:
-                        obj = u'"%s"' % entity_value
-            else:
-                # If no value was specified, the object will be a variable in the SPARQL query
-                obj = u'?%s' % entity_name
-            pred = u'?%s' % entity_name
-
-            if strict_mode and entity_name in self.voc_attributes:
-                to_unite = set([])
-                for attribute_name in self.voc_attributes[entity_name]:
-                    to_unite.add(
-                        RDFTriple(
-                            subject=self.args['subject'],
-                            predicate=attribute_name,
-                            object=obj,
-                            language=self.query_language
-                        )
-                    )
-                self.query_builder.add_query_alternative_triples(to_unite)
+            entity_values = self.__dict__.get(entity_name, None)
+            if is_listlike(entity_values):
+                # TODO ici il faudrait créer des alternate triples
+                self.create_triples_for_multiple_element(entity_name, entity_values)
 
             else:
-                self.query_builder.add_query_triple(
-                    RDFTriple(
-                        subject=self.args['subject'],
-                        predicate=pred,
-                        object=obj,
-                        language=self.query_language
-                    )
-                )
+                entity_value = normalize_str(entity_values)
+                self.create_triples_for_single_element(entity_name, entity_value, strict_mode)
 
         # Fetching everything about that Thing
         self.query_builder.add_query_triple(
@@ -289,11 +299,116 @@ class Thing(object):
             )
         )
 
+    def format_value_for_RDF_compliance(self, value, default_value):
+        """
+        An element of a RDF triple must have a certain form depending on it type:
+
+        - Integers are given as is
+
+        - URL/URIs must be enclosed in angle brackets.
+
+        - Normal strings must be enclosed in quotation marks
+
+        - If the value is empty or None, then the default value is prefixed with a question mark
+          and becomes a variable.
+
+        :param value: The value to be passed to a subject or object RDF slot.
+        :param default_value: The name of the variable in case the value is empty.
+        :return: A formatted value that will be a legal subject or object of an RDF triple.
+        """
+
+        if value:
+            try:
+                # For dates elements, the triplet literal must be formatted without quotes
+                formatted_value = int(value)
+            except ValueError:
+                if value[0:7] == u'http://':
+                    formatted_value = u'%s' % value  # The entity is a raw URL
+                else:
+                    formatted_value = u'"%s"' % value
+        else:
+            # If no value was specified, the object will be a variable in the SPARQL query
+            formatted_value = u'?%s' % default_value
+
+        return formatted_value
+
+    def create_triples_for_multiple_element(self, entity_name, entity_values):
+        """
+        If the variable 'has_…' (entity_name) is a list of values instead of a single value,
+        we create an alternate triple.
+        N.B.: If strict mode is enabled for the query, it will be disabled
+        for this particular triples union because this would increase the size of the query too much.
+
+        :Example:
+
+        >>> has_author = ["http://www.example.org/X", "http://www.example.org/Y"]
+        Will give the query triple:
+        `{ ?Book has_author <http://www.example.org/X>  } UNION { ?Book has_author <http://www.example.org/Y>  }.`
+
+        :param entity_name: name of the 'has_…' attribute
+        :param entity_values: values of the 'has_…' attribute
+        :return:
+        """
+        logging.debug("Strict mode is disabled for %s because it contains multiple values." % entity_name)
+
+        to_unite = set([])
+        for entity_value in entity_values:
+            to_unite.add(
+                RDFTriple(
+                    subject=self.args['subject'],
+                    predicate=u'?%s' % entity_name,
+                    object=self.format_value_for_RDF_compliance(entity_value, u"%s_obj" % entity_name),
+                    language=self.query_language
+                )
+            )
+        self.query_builder.add_query_alternative_triples(to_unite)
+
+
+
+    def create_triples_for_single_element(self, entity_name, entity_value,  strict_mode):
+        """
+        If the variable 'has_…' (entity_name) is a single values instead of a list of value,
+        we create a standard query triple.
+
+        :param entity_name: name of the 'has_…' attribute
+        :param entity_value: values of the 'has_…' attribute
+        :param strict_mode: is strict_mode (check RDF type) is enabled
+        :return:
+        """
+
+        # The instance has an instantiated value for a 'has_…' variable. This value will be the
+        # object of an RDF triplet.
+        obj = self.format_value_for_RDF_compliance(entity_value, u"%s_obj" % entity_name)
+        pred = u'?%s' % entity_name
+
+        if strict_mode and entity_name in self.voc_attributes:
+            to_unite = set([])
+            for attribute_name in self.voc_attributes[entity_name]:
+                to_unite.add(
+                    RDFTriple(
+                        subject=self.args['subject'],
+                        predicate=attribute_name,
+                        object=obj,
+                        language=self.query_language
+                    )
+                )
+            self.query_builder.add_query_alternative_triples(to_unite)
+
+        else:
+            self.query_builder.add_query_triple(
+                RDFTriple(
+                    subject=self.args['subject'],
+                    predicate=pred,
+                    object=obj,
+                    language=self.query_language
+                )
+            )
+
     # --------------------------------------- #
     #       QUERIES LAUNCH AND PROCESS
     # --------------------------------------- #
 
-    def query(self, strict_mode=False, check_type=True):
+    def query(self, strict_mode=False, check_type=True, limit=1500):
         """
         Launches the query of the current object to the specified endpoints, given the query options to constraints
         the types of the RDF triples predicates and retrieve the results.
@@ -312,6 +427,7 @@ class Thing(object):
         Check the type of the object's attributes (e.g: label, first name,…) directly in the SPARQL queries.
         If True, the predicates of the triplet whose values are instantiated will have their types checked
         against the allowed types listed in self.voc_attributes.
+
 
         :Example:
 
@@ -334,7 +450,8 @@ class Thing(object):
         ``[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]``
         """
 
-        self._build_query(strict_mode, check_type)
+        self.query_builder.set_limit(self.query_limit)
+        self._build_query(strict_mode=strict_mode, check_type=check_type)
         self.query_builder.add_endpoints(self.endpoints)
         self.query_builder.commit()
         self._process_results(check_type) # TODO: set another check_type
@@ -389,20 +506,30 @@ class Thing(object):
         result_dict_list = [{a: a1, b: b1} for (a, a1), (b, b1) in self.query_builder.results]
         result_dict_list = [{get_shortened_uri(item.get(pred)): item.get(obj)} for item in result_dict_list]
         if result_dict_list:
-            things[self.__dict__.get('has_url')] = reduce(merge_two_dicts_in_sets, result_dict_list)
-            # If we retrieved the thing using its URL,
-            # we are sure the results correspond to the right thing.
-            things[self.__dict__.get('has_url')][u'validated'] = 1
+            urls = self.__dict__.get('has_url') \
+                if is_listlike(self.__dict__.get('has_url')) \
+                else [self.__dict__.get('has_url')]
+
+            for url in urls:
+                things[url] = reduce(merge_two_dicts_in_sets, result_dict_list)
+                # If we retrieved the thing using its URL,
+                # we are sure the results correspond to the right thing.
+                things[url][u'validated'] = 1
         return things
 
     def _process_any_results(self, subj, pred, obj, check_type=True):
         """ Return a dictionary of results for standard types of queries.
         TODO: Document better that part."""
         things = {}
-        values_to_check = {
-            v: e for e, v in self.__dict__.items()
-            if e.startswith('has_') and self.__dict__.get(e, None)
-        }
+
+        values_to_check = {}
+        for element, value in self.__dict__.items():
+            if element.startswith('has_') and self.__dict__.get(element, None):
+                if is_listlike(value):
+                    for v in value:
+                        values_to_check[v] = element
+                else:
+                    values_to_check[value] = element
 
         # We need to check the type of the responses
         for result in self.query_builder.results:
@@ -432,7 +559,7 @@ class Thing(object):
         same_entities_keys = [u'skos:exactMatch', u'owl:sameAs']
 
         # TODO: dirty, make that more legible
-        same_entity_uris = set(itertools.chain.from_iterable([
+        same_entity_uris = set(chain.from_iterable([
             self.attributes.get(same_entities_key)
             if isinstance(self.attributes.get(same_entities_key), set)
             else set([self.attributes.get(same_entities_key)])
@@ -453,6 +580,13 @@ class Thing(object):
             same_entity.query()
             self.attributes = merge_two_dicts_in_sets(self.attributes, same_entity.attributes)
         self.find_more_about(seen)
+
+    def get_uris(self):
+        """ Gets the URIs of the current object. """
+        identity_predicates = [u'owl:sameAs', u'skos:exactMatch']
+        urls_sets = [self.attributes.get(pred) for pred in identity_predicates]
+        urls = set([get_expended_uri(u) for u in chain.from_iterable(urls_sets)])
+        return [url for url in urls if url]
 
     def get_attributes_with_keyword(self, keyword):
         """ For debuging purposes """
