@@ -39,6 +39,10 @@ class NameSpace(Enum):
     category_fr = u'http://fr.dbpedia.org/resource/Catégorie:'
     dawgt = u'http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#'
     dbo = u'http://dbpedia.org/ontology/'
+    dct = u'http://purl.org/dc/terms/'
+    dbp = u'http://dbpedia.org/property/'
+    dbr = u'http://dbpedia.org/resource/'
+    dbc = u'http://dbpedia.org/resource/Category:'
     dbpedia = u'http://dbpedia.org/resource/'
     dbpedia_cs = u'http://cs.dbpedia.org/resource/'
     dbpedia_de = u'http://de.dbpedia.org/resource/'
@@ -176,6 +180,23 @@ def get_shortened_uri(uri):
         except ValueError:
             pass
     return uri
+
+def get_expended_uri(uri):
+    """Return the expanded form of a short URI if the namespace is known.
+
+    >>> get_expended_uri("foaf:surname")
+    >>> "http://xmlns.com/foaf/0.1/surname"
+
+    :param uri: the URI to expand.
+    :return: the long URI if it exists, else None
+    """
+    (pref, _, post) = uri.rpartition(':')
+    if pref:
+        corresponding_namespace = NameSpace.__members__.get(pref, None)
+        if corresponding_namespace:
+            return "%s%s" % (corresponding_namespace.value, post)
+    return
+
 
 def decompose_prefix(prefix):
     """

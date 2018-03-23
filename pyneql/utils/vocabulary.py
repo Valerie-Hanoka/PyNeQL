@@ -29,6 +29,14 @@ rdf_types = {
         u"dul:NaturalPerson",
         u"schema:Person"
     },
+
+    # CREATIVE WORK
+    u'CreativeWork': {
+        u"dbo:Creative_work",
+        u"wd:Q17537576",
+        u"schema:CreativeWork"
+    },
+
     # BOOK
     u'Book': {
         u"wd:Q571",                            # Wikidata for Book
@@ -124,15 +132,19 @@ attributes = {
         ],
     },
 
-    # BOOK
-    u'Book': {
+    # CREATIVE WORK
+    u'CreativeWork': {
         u'has_author': [
-            u'wdt:P50',                                 # author
-            u'wdt:P1773',                               # attributed to
-            u'wdt:P2093',                               # author name string
+            u'wdt:P50',  # author
+            u'wdt:P1773',  # attributed to
+            u'wdt:P2093',  # author name string
+            u'wdt:P1779',  # possible creator
+            u'wdt:P170',   # creator
             u'schema:author',
             u'schema:creator',
+            u'schema:accountablePerson',  # ?
             u'dcterms:creator',
+            u'dc:creator'
             u'dbo:author',
             u'bnfroles:r70'
         ],
@@ -140,15 +152,24 @@ attributes = {
             u'schema:alternativeHeadline',
             u'schema:alternateName',
             u'schema:name',
-            u'dcterms:title'
+            u'dcterms:title',
+            u'schema:headline',
+            u'foaf:name'        # weird but needed...
         ],
-        u'has_isbn': [
-            u'schema:isbn',
-        ],
-        u'has_publicatin_date': [
+        u'has_date': [
             u'schema:datePublished',
+            u'schema:dateCreated',
+            u'schema:dateModified',
+            u'schema:copyrightYear'
             u'bnf_onto:firstYear',
             u'wdt:P577'
+        ],
+    },
+
+    # BOOK
+    u'Book': {
+        u'has_isbn': [
+            u'schema:isbn',
         ],
         u'has_publisher': [
             u'schema:publisher',

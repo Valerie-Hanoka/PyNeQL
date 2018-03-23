@@ -39,7 +39,6 @@ def test_person_dbpedia_query_strict_False():
     """Person - dbpedia - strict=False - : Should pass """
     person = Person(full_name="Nan Goldin", query_language=Lang.German)
     person.add_query_endpoint(Endpoint.dbpedia)
-    person.query_builder.set_limit(666)
     person.query(strict_mode=False)
 
     assert reduce((lambda x, y: x or y), ['Q234279' in attr for attr in person.attributes.get(u'owl:sameAs')])

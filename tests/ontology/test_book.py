@@ -11,8 +11,6 @@ from pyneql.utils.utils import QueryException
 
 import datetime
 
-# TODO: • test for each the search with other attributes
-# TODO: • Find why wikidata is not working anymore
 
 ##################################################
 #                 QUERY
@@ -21,21 +19,21 @@ import datetime
 @raises(QueryException)
 def test_book_incomplete():
     """Book - Not enough arguments: Should fail"""
-    Book(author="Mary Poppins", query_language=Lang.English)
+    Book(author="Marie Poppins", query_language=Lang.English)
 
 
-## Testing Endpoint: dbpedia
-#def test_book_dbpedia_query_strict_True():
-#    """Book - dbpedia - strict=True - : Should pass"""
-#    book = Book(XXX, query_language=Lang.French)
-#    book.add_query_endpoint(Endpoint.dbpedia)
-#    book.query(strict_mode=True)
-#
-#    assert book.get_external_ids() == {
-#        u'Deutschen_Nationalbibliothek': u'http://d-nb.info/gnd/118554654',
-#        u'viaf': u'http://viaf.org/viaf/9847974'
-#    }
-#
+# Testing Endpoint: dbpedia
+def test_book_dbpedia_query_strict_True():
+    """Book - dbpedia - : Should pass"""
+    book = Book(
+        title="A Vindication of the Rights of Woman",
+        author="Mary Wollstonecraft",
+        endpoints=[Endpoint.dbpedia])
+    book.query()
+
+    assert book.attributes
+
+
 #def test_book_dbpedia_query_strict_False():
 #    """Book - dbpedia - strict=False - : Should pass """
 #    book = Book(XXX, query_language=Lang.German)

@@ -18,6 +18,22 @@ class QueryException(Exception):
 class NameSpaceException(QueryException):
     pass
 
+# ---- Data structure identification --- #
+
+def is_listlike(element):
+    """Identify objects that acts like lists (list, tuple, set, ...)
+    but are *not* strings.
+    """
+
+    if isinstance(element, basestring):
+        return False
+    else:
+        try:
+            element.__iter__()
+            return True
+        except AttributeError:
+            return False
+
 # ---- Data structures ---- #
 
 def merge_two_dicts_in_lists(x, y):

@@ -50,7 +50,7 @@ class RDFTriple(object):
                  subject=u'',
                  predicate=u'',
                  object=u'',
-                 prefixes=None,             # A list of SPARKL prefixes
+                 prefixes=None,             # A list of SPARQL prefixes
                  excluded_endpoints=None,   # A list of endpoints
                  keep_only_endpoints=None,  # A list of endpoints
                  language=Lang.DEFAULT):

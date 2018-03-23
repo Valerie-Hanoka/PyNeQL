@@ -102,6 +102,7 @@ class GenericSPARQLQuery(object):
 
         :param triples_set: A set of :class:`RDFtriple`
         """
+
         self.alternate_triples.append(triples_set)
         for triple in triples_set:
             for p in triple.prefixes:
@@ -120,12 +121,12 @@ class GenericSPARQLQuery(object):
         match = get_consistent_namespace(abbr, url)
         if match:
             self.prefixes.add(match)
-            logging.info("Adding prefix %s to query." % highlight_str(match))
+            logging.debug("Adding prefix %s to query." % highlight_str(match))
         else:
             # Unknown namespace, adding it to the vocabulary
             new_namespace = add_namespace(abbr, url)
             self.prefixes.add(new_namespace)
-            logging.info("Adding prefix %s to query." % highlight_str(new_namespace))
+            logging.debug("Adding prefix %s to query." % highlight_str(new_namespace))
         pass
 
     def add_prefixes(self, prefixes):
@@ -176,7 +177,7 @@ class GenericSPARQLQuery(object):
             raise QueryException(u" Bad limit value. Must be greater than 0.")
 
         self.limit = u'LIMIT %i' % limit
-        logging.info("Adding limit = %i to query." % limit)
+        logging.debug("Adding limit = %i to query." % limit)
 
     #  -------  Query Validation & preparation -------#
     def _validate_arguments(self):
@@ -184,7 +185,7 @@ class GenericSPARQLQuery(object):
 
         # The only mandatory argument to put in our template is the list
         # of rdf triples.
-        if not self.triples:
+        if not (self.triples or self.alternate_triples):
             raise QueryException(
                 u"The query can't be instantiated without rdf triples in the WHERE clause")
 

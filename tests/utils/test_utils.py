@@ -9,9 +9,18 @@ Author: Valérie Hanoka
 from pyneql.utils.utils import (
     merge_two_dicts_in_lists,
     merge_two_dicts_in_sets,
-    normalize_str
+    normalize_str,
+    is_listlike
 )
 
+def test_utils_is_listlike():
+    """Is a python object iterable but not a string ?: should pass"""
+    ok = [(1, 2, 3), [1, 2, 3], {1, 3, 2}, iter([1, 2, 3])]
+    ok_size = len(ok)
+    not_ok = [123, "123", u'123']
+
+    assert len([is_listlike(e) for e in ok]) == ok_size
+    assert not any([is_listlike(e) for e in not_ok])
 
 def test_utils_merge_two_dicts_in_list1():
     """Recursive merge & append dict values: Should pass"""
