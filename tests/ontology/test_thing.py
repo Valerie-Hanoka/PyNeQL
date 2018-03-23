@@ -53,7 +53,7 @@ def test_query_content_multiple_labels_checktype_nostrictmode():
         endpoints=[e for e in Endpoint]
     )
 
-    thing.query(check_type=False, strict_mode=True)
+    thing.query(check_type=True, strict_mode=True)
     expected_queries = {
         Endpoint.DEFAULT: u'PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wdt_o: <http://www.wikidata.org/ontology#> PREFIX dbo: <http://dbpedia.org/ontology/> PREFIX schemaorg: <http://schema.org/> SELECT DISTINCT ?Thing ?pred ?obj WHERE { ?Thing ?pred ?obj . { ?Thing a wdt_o:Item  } UNION { ?Thing a owl:Class  } UNION { ?Thing a schemaorg:Thing  } UNION { ?Thing a wd:Q35120  } UNION { ?Thing a owl:Thing  } UNION { ?Thing a schemaorg:Class  } UNION { ?Thing a dbo:Thing  } .  { ?Thing ?has_label "A"@en  } UNION { ?Thing ?has_label 2  } UNION { ?Thing ?has_label <http://exemple.org/B>  } .  } LIMIT 1',
         Endpoint.wikidata: u'PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX wd: <http://www.wikidata.org/entity/> PREFIX wdt_o: <http://www.wikidata.org/ontology#> PREFIX dbo: <http://dbpedia.org/ontology/> PREFIX schemaorg: <http://schema.org/> SELECT DISTINCT ?Thing ?pred ?obj WHERE { SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } ?Thing ?pred ?obj . { ?Thing a wdt_o:Item  } UNION { ?Thing a owl:Class  } UNION { ?Thing a schemaorg:Thing  } UNION { ?Thing a wd:Q35120  } UNION { ?Thing a owl:Thing  } UNION { ?Thing a schemaorg:Class  } UNION { ?Thing a dbo:Thing  } .  { ?Thing ?has_label "A"@en  } UNION { ?Thing ?has_label 2  } UNION { ?Thing ?has_label <http://exemple.org/B>  } .  } LIMIT 1',
