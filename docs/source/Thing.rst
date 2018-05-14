@@ -29,14 +29,13 @@ We want to find `አዲስ አበባ <https://en.wikipedia.org/wiki/Addis_Ababa>
     # and the endpoint on which the object should be queried.
     addis_abeba = Thing(
         label=u'አዲስ አበባ',
-        query_language=Lang.Amharic
+        query_language=Lang.Amharic,
         endpoints=[Endpoint.dbpedia])
 
     # Sending the query
     addis_abeba.query()
 
-Once the query is sent, the result information is stored in the object's
-``attributes`` dictionary
+Once the query is sent, the results are stored in the object's ``attributes`` dictionary.
 
 
 
@@ -60,9 +59,11 @@ Executing the function add some more
 >>> len(addis_abeba.attributes)
 176
 
+
 This feature just takes the URIs of the first result set which are the objects
 of identity predicates (``skos:exactMatch``, ``owl:sameAs``) and retrieve the associated RDF triples.
 
+*N.B.: The numbers of attributes given here for this example are susceptible to variations.*
 
 .. image:: ../../illustration_delimitante.png
   :width: 600
@@ -160,23 +161,87 @@ For instance here for Addis Abeba, the content is::
 
 
 
-
 Via keyword search
 """"""""""""""""""""""
 
-It is possible to search a keyword in the result set keys::
+It is possible to search a regular expression in the result set keys::
 
-    addis_abeba.get_attributes_with_keyword('abel')
+    addis_abeba.get_attributes_with_keyword("rdfs?:")
 
-This gives us a subset of results whose keys match the substring ``abel``::
+This gives us a subset of results which keys use `rdf` or `rdfs` prefixes::
 
     {
-        rdfs:label: ([ "أديس أبابا","അഡിസ് അബെബ","Adis Abeba","अदीस अबाबा","Neanthopolis","Аддис-Абеба","アディスアベバ","अदिस अबाबा","Адис Абеба","亚的斯亚贝巴","אדיס אבבה","Ադիս Աբեբա","Addis Abeba",,"ਆਦਿਸ ਆਬਬਾ","Addis-Abeb","Adis-Abeba","అద్దిస్ అబాబా","አዲስ አበባ","ადის-აბება","Adis-Abebo","Адыс-Абэба","ཨ་ཌི་སི་ཨ་བ་བ།","Addis Ababa","Addis-Abeba","Аддис-Абебæ","ئادیس ئابابا","แอดดิสอาบาบา","ಅಡಿಸ್ ಅಬಾಬ","Addisz-Abeba","آدیس آبابا","Adas Ababa","আদ্দিস আবাবা","Αντίς Αμπέμπα","Adis Ababa","اديس ابابا","Горад Адыс-Абеба","အာဒစ် အာဘာဘာမြို့","אדיס אבאבא","아디스아바바","Adís Abeba","阿","Adisabeba","ادیس ابابا","அடிஸ் அபாபா" ]),
-        skos:altLabel: ([ "Addis","Finifinee","Āddīs Ābebā" ]),
+        'rdf:type': {'wd:Q5119', 'wd:Q1637706', 'wdt_o:Item'},
+        'rdfs:label': {'Adas Ababa _(@ga)',
+                       'Addis Ababa _(@cy)',
+                       [...]
+                       'Аддис-Абеба _(@udm)',
+                       'Аддис-Абеба _(@uk)',
+                       'Адис Абеба _(@bg)',
+                       'Горад Адыс-Абеба _(@be)',
+                       'Ադիս Աբեբա _(@hy)',
+                       'آدیس آبابا _(@fa)',
+                       'ادیس ابابا _(@ur)',
+                       'अदिस अबाबा _(@mr)',
+                       'अदिस अबाबा _(@new)',
+                       'अदीस अबाबा _(@hi)',
+                       'আদ্দিস আবাবা _(@bn)',
+                       'ਆਦਿਸ ਆਬਬਾ _(@pa)',
+                       'அடிஸ் அபாபா _(@ta)',
+                       'అద్దిస్ అబాబా _(@te)',
+                       'ಅಡಿಸ್ ಅಬಾಬ _(@kn)',
+                       'അഡിസ് അബെബ _(@ml)',
+                       'แอดดิสอาบาบา _(@th)',
+                       'ཨ་ཌི་སི་ཨ་བ་བ། _(@bo)',
+                       'အာဒစ် အာဘာဘာမြို့ _(@my)',
+                       'ადის-აბება _(@ka)',
+                       'ადის-აბება _(@xmf)',
+                       'አዲስ አበባ _(@am)',
+                       'アディスアベバ _(@ja)',
+                       '亚的斯亚贝巴 _(@wuu)',
+                       '亚的斯亚贝巴 _(@zh)',
+                       '아디스아바바 _(@ko)'},
+        'rdfs:seeAlso': {'http://d-nb.info/gnd/4000459-4/about/rdf',
+                         'http://data.bnf.fr/ark:/12148/cb119947834',
+                         'http://id.loc.gov/authorities/names/n79061184',
+                         'http://musicbrainz.org/8474f16d-03a0-4a09-adf3-df2d1e65ba2f/area',
+                         'http://sws.geonames.org/344979/about.rdf',
+                         'http://viaf.org/viaf/141880939/rdf.xml'}
     }
 
-.. note::
-    It is not yet possible to filter results by languages. It's on my todo list. Feel free to contribute to the project on `GitHub <https://github.com/Valerie-Hanoka/PyNeQL>`_ !
+The literals are all postfixed with their language code.
+If you are looking for the labels of an entity in a given language, you can use the `labels_by_languages` class variable:
+
+>>> addis_abeba.labels_by_languages
+    {
+         'af': ['Addis Abeba'],
+         'am': ['አዲስ አበባ'],
+         'an': ['Addis Abeba'],
+         'ar': ['أديس أبابا'],
+         'arz': ['اديس ابابا'],
+         'az': ['Əddis-Əbəbə'],
+         'ba': ['Аддис-Абеба'],
+         'be': ['Горад Адыс-Абеба'],
+         'be-tarask': ['Адыс-Абэба'],
+         'bg': ['Адис Абеба'],
+         'bn': ['আদ্দিস আবাবা'],
+         'bo': ['ཨ་ཌི་སི་ཨ་བ་བ།'],
+         'br': ['Addis Abeba'],
+         'bs': ['Adis Abeba'],
+         'ca': ['Addis Abeba'],
+         'ce': ['Аддис-Абеба'],
+         'ckb': ['ئادیس ئابابا'],
+         'cs': ['Addis Abeba'],
+         'cy': ['Addis Ababa'],
+         'da': ['Addis Ababa'],
+         'de': ['Addis Abeba'],
+         'diq': ['Adis Abeba'],
+         'dsb': ['Addis Abeba'],
+         'el': ['Αντίς Αμπέμπα'],
+         'en': ['Addis Ababa', 'Finifinee'],
+          [...]
+    }
+
 
 
 .. image:: ../../illustration_delimitante.png

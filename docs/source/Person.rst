@@ -89,7 +89,9 @@ and retreive the RDF triples associated to those URIs.
 >>> len(bell hooks.attributes)
 223
 
-For our exemple, the (truncated) content of the result set is as follows::
+*N.B.: The numbers of attributes given here for this example are susceptible to variations.*
+
+For our example, the (truncated) content of the result set is as follows::
 
     {
         bnf_onto:firstYear: ([ 1952 ]),

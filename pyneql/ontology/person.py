@@ -19,7 +19,8 @@ from pyneql.utils.utils import (
     QueryException,
     contains_a_date,
     merge_two_dicts_in_sets,
-    normalize_str
+    normalize_str,
+    parse_literal_with_language
 )
 
 from dateutil.parser import parse as parsedate
@@ -143,21 +144,29 @@ class Person(Thing):
         - 'MtF', 'FtM', 'intersex' or 'queer' if the person is transgender or genderqueer.
         - 'unknown' if the gender information is unavailable."""
 
-        for info_key, info in six.iteritems(self.attributes):
-            if 'gender' in info_key.lower():
-                genders = {
-                    u'female': u'F',
-                    u'Q6581072': u'F',
-                    u'male': u'M',
-                    u'Q6581097': u'M',
-                    u'Q1052281': u'MtF',
-                    u'Q2449503': u'FtM',
-                    u'Q1097630': u'intersex',
-                    u'genderqueer': u'queer'
-                }
-                # We take the first declared gender in the iterator (others -if any- are ignored)
-                gender = next(iter(info)) if isinstance(info, set) else info
-                return genders.get(gender[gender.find(':') + 1:], u'other')
+        genders = {
+            u'female': u'F',
+            u'Q6581072': u'F',
+            u'male': u'M',
+            u'Q6581097': u'M',
+            u'Q1052281': u'MtF',
+            u'Q2449503': u'FtM',
+            u'Q1097630': u'intersex',
+            u'genderqueer': u'queer'
+        }
+
+        retrieved_genders = [
+            parse_literal_with_language(g)
+            for g
+            in self.get_attributes_with_keyword('gender').values()
+        ]
+
+        for gender, lang in retrieved_genders:
+
+            # We take the first declared gender in the iterator (others -if any- are ignored)
+            g = genders.get(gender[gender.find(':') + 1:], None)
+            if g is not None:
+                return g
         return u'unknown'
 
     def get_names(self):
@@ -182,7 +191,7 @@ class Person(Thing):
 
         for name_type, name in unfiltered_names.items():
             if isinstance(name, set):
-                filtered = filter(lambda x: x.count('-') < 5, name)
+                filtered = [n for n in name if n.count('-') < 5]
                 if filtered:
                     names[name_type] = filtered if len(filtered) > 1 else filtered.pop()
             else:

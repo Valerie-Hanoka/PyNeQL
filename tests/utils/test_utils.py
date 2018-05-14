@@ -10,7 +10,8 @@ from pyneql.utils.utils import (
     merge_two_dicts_in_lists,
     merge_two_dicts_in_sets,
     normalize_str,
-    is_listlike
+    is_listlike,
+    parse_literal_with_language
 )
 
 def test_utils_is_listlike():
@@ -108,5 +109,39 @@ def test_utils_normalize_str():
                       u" Adapted from the saying, If it looks like a duck, swims like a duck, " \
                       u"and quacks like a duck, then it's probably a duck."
 
-    assert isinstance(normalised, unicode)
     assert well_normalised == normalised
+
+
+def test_utils_parse_literal_with_language():
+    """Utils - parse a literal with language: Should pass """
+
+    literal_list = [
+        'Аддис-Абеба _(@tg)', 'Addis Ababa _(@tr)', 'Ադիս Աբեբա _(@hy)',
+        'Аддис-Абеба _(@uk)', 'Addis Abeba _(@it)', 'Аддис-Абеба _(@udm)',
+        'Addis Abeba _(@dsb)', 'Адыс-Абэба _(@be-tarask)', 'Adis Abeba _(@kg)',
+        'ཨ་ཌི་སི་ཨ་བ་བ། _(@bo)', 'Аддис-Абеба _(@ru)', 'اديس ابابا _(@arz)', 'Addis Abeba _(@eu)',
+        'Addis Abeba _(@srn)', 'Addis Abeba _(@kab)', 'Аддис-Абеба _(@mn)',
+        'אדיס אבאבא _(@yi)', 'अदिस अबाबा _(@mr)', 'Addis Abeba _(@cs)',
+        'Addis Abeba _(@nn)', 'Addis Abeba _(@pms)', 'Adis Abeba _(@hr)',
+        'ادیس ابابا _(@ur)', 'Адис Абеба _(@bg)', 'Addis Abeba _(@vro)',
+        'അഡിസ് അബെബ _(@ml)', 'Adis Abeba _(@diq)', 'Addis Ababa _(@is)',
+        'Addis Ababa _(@da)', 'آدیس آبابا _(@fa)', 'ადის-აბება _(@ka)',
+        '亚的斯亚贝巴 _(@zh-hans)', 'အာဒစ် အာဘာဘာမြို့ _(@my)', 'అద్దిస్ అబాబా _(@te)',
+        'Addis-Abeba _(@fr)', 'Addis Abeba _(@et)', 'Addis-Abeba _(@wo)',
+        'Addisz-Abeba _(@hu)', 'Addis Abeba _(@oc)', '亚的斯亚贝巴 _(@zh)', 'Addis Ababa _(@cy)',
+        'Addis Abeba _(@ca)', 'Адис _(@sr)', 'Addis-Abeba _(@uz)', 'אדיס אבבה _(@he)',
+        '亚的斯亚贝巴 _(@wuu)', 'Addis Ababa _(@ig)', 'Addis Ababa _(@yo)',
+        'Addis Abeba _(@nb)', 'Addis Abeba _(@rm)', 'Adis-Abebo _(@eo)',
+        'Addis Ab@fi)', 'ಅಡಿಸ್ ಅಬಾಬ _(@kn)', 'アディスアベバ _(@ja)',
+        'Аддис-Абеба _(@kk)', 'Addis Ababa _(@id)', 'Addis Ababa _(@hif)',
+        'ਆਦਿਸ ਆਬਬਾ _(@pa)', 'Adis Abeba _(@pt-br)', 'Addis Abeba _(@sc)', 'Addis (@mg)',
+        'Addis Abeba _(@lmo)', 'Adís Abeba _(@gl)', 'Addis Abeba _(@lb)', 'Addis Abeba _(@nl)',
+        'ادیس ابابا _(@pnb)', 'Аддис-Абеба _(@ky)', 'Adis Abeba _(@bs)', 'Адис Абеба _(@mk)',
+        '阿迪斯阿貝yue)', 'Addis Ababa _(@en)', 'แอดดิสอาบาบา _(@th)', 'Addis Ababa _(@ms)',
+        'Addis Ababa _(@pap)', 'Addis Ababa _(@sn)', 'আদ্দিস আবাবা _(@bn)', 'Adís Abeba _(@es)',
+        'Addis Abeba _(@ro)', 'அடிஸ் அபாபா _(@ta)', 'Adis-Abeba _(@ht)', 'Addis Ababa _(@fo)',
+        'Аддис-Абеба _(@ce)', 'ადის-აბება _(@xmf)', 'Addis Abeba _(@br)', 'Neanthopolis _(@la)',
+        'Addis Abeba _(@om)', 'Addis Abeba _(@af)', 'Addis Abeba _(@hsb)', 'Addis Ababa _(@ha)']
+
+    for literal in literal_list:
+        assert len(parse_literal_with_language(literal)) > 0

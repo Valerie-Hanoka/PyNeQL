@@ -5,8 +5,12 @@ utils.py is part of the project PyNeQL
 Author: Valérie Hanoka
 
 """
+
+from past.builtins import basestring
+import six
 from copy import deepcopy
 from unicodedata import normalize
+
 
 import re
 
@@ -57,7 +61,7 @@ def merge_two_dicts_in_lists(x, y):
     if not isinstance(y, dict):
         return y
     result = deepcopy(x)
-    for k, v in y.iteritems():
+    for k, v in six.iteritems(y):
         if k in result and isinstance(result[k], dict):
                 result[k] = merge_two_dicts_in_lists(result[k], v)
         else:
@@ -121,10 +125,7 @@ def normalize_str(s):
     :param s: a string or unicode
     :return: the unicode normalised version of s
     """
-    if isinstance(s, str):
-        s = unicode(s.strip(), 'utf-8')
-    else:
-        s = s.strip()
+    s = u'%s' % s.strip()
     s = normalize('NFC', s)
     return u' '.join(s.split())
 
@@ -139,12 +140,28 @@ def contains_a_date(s):
     return RE_CONTAINS_A_DATE.search(s)
 
 
+RE_LITERAL_LANGUAGE = re.compile('(?P<lit>.*?) _\(@(?P<lang>.*)\)')
+def parse_literal_with_language(literal_with_language_str):
+    """
+    At some point, literals in the result set are formated as follow:
+    "literal _(@lang)". This function parses this string if possible,
+    and returns a couple (litteral, language).
+    :param literal_with_language_str: The string of the form "literal _(@lang)"
+    :return: a couple (literal, lang) if the language is detected,
+    (literal, None) otherwise.
+    """
+    match = re.match(RE_LITERAL_LANGUAGE, literal_with_language_str)
+    if match:
+        return match.groupdict().get('lit'), match.groupdict().get('lang')
+    else:
+        return literal_with_language_str, None
+
 # ----- Eye sugar ----- #
 def pretty_print_utf8(result_dataset):
     """For debug & documentation purpose"""
     for key in sorted(result_dataset.keys()):
         utf8_values = recursive_pretty_print(result_dataset[key])
-        print("%s: ([ %s ])," % (unicode(key).encode('utf8'), utf8_values))
+        print("%s: ([ %s ])," % (key.encode('utf8'), utf8_values))
 
 def recursive_pretty_print(element):
 
@@ -159,7 +176,7 @@ def recursive_pretty_print(element):
         try:
             int(element)
         except:
-            utf_8 = '"%s"' % unicode(element).encode('utf8')
+            utf_8 = '"%s"' % str(element).encode('utf8')
         else:
-            utf_8 = '%s' % unicode(element).encode('utf8')
+            utf_8 = '%s' % element.encode('utf8')
     return utf_8

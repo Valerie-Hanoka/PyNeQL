@@ -1,16 +1,14 @@
 Languages available
 =========================================
 
-Currently supported languages are listed in the class ``pyneql.utils.enum.LanguagesIso6391``.
-
 .. image:: ../../illustration_delimitante.png
   :width: 600
   :alt: ⚓
 
-Usage
------
+Query Languages
+---------------
 
-You can use a language by importing this class and using its correspondence in the enumeration::
+You can use a language in a query by importing this class and using its correspondence in the enumeration::
 
     from pyneql.utils.enum import LanguagesIso6391 as Lang
     my_language = Lang.Ukrainian
@@ -33,16 +31,27 @@ we would instantiate the query as follows:
 }
 
 
-.. image:: ../../illustration_delimitante.png
-  :width: 600
-  :alt: ⚓
+Currently supported languages are listed in the class ``pyneql.utils.enum.LanguagesIso6391``.
+
+
 
 Class details
---------------
+^^^^^^^^^^^^^
 
 .. literalinclude:: ../../pyneql/utils/enum.py
     :linenos:
     :language: python
     :start-after: Enum
 
+.. image:: ../../illustration_delimitante.png
+  :width: 600
+  :alt: ⚓
+
+
+Results Languages
+------------------
+
+When a query is done, the resulting answer may contain literals in specific languages.
+
+Those literals are post-fixed by their unedited language code.
 

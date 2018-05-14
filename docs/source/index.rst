@@ -48,32 +48,68 @@ A simple Named Entity query using **PyNEQL** might look like that::
 
 
 Accessing the raw results
+**************************
 
 >>> person.attributes
 {
-dbo:almaMater: ([ "dbpedia:Harvard_University" ]),
-dbo:birthName: ([ "William Henry Gates III" ]),
-dbo:birthYear: ([ 1955 ]),
-dbo:board: ([ "dbpedia:Berkshire_Hathaway","dbpedia:Microsoft" ]),
-dbo:networth: ([ "8.17E10" ]),
-dbo:parent: ([ "dbpedia:Mary_Maxwell_Gates","dbpedia:William_H._Gates,_Sr." ]),
-foaf:surname: ([ "Gates" ]),
-http://purl.org/linguistics/gold/hypernym: ([ "dbpedia:Magnate","dbpedia:Frontiersman" ]),
-http://purl.org/voc/vrank#hasRank: ([ "nodeID://b27516705","nodeID://b6773534","nodeID://b26111660" ]),
-owl:sameAs: ([ "dbpedia:Bill_Gates","dbpedia:Bill_Gates_(frontiersman)","dbpedia:Bill_Gates_(politician)" ]),
-skos:exactMatch: ([ "dbpedia:Bill_Gates","dbpedia:Bill_Gates_(frontiersman)","dbpedia:Bill_Gates_(politician)" ]),
+ 'dbo:almaMater': 'dbpedia:Harvard_University',
+ 'dbo:birthDate': '1955-10-28',
+ 'dbo:birthName': 'William Henry Gates III _(@en)',
+ 'dbo:birthPlace': 'dbpedia:Seattle',
+ 'dbo:birthYear': '1955',
+ 'dbo:board': {'dbpedia:Microsoft', 'dbpedia:Berkshire_Hathaway'},
+ 'dbo:networth': '8.17E10',
+ 'dbo:parent': {'dbpedia:Mary_Maxwell_Gates', 'dbpedia:William_H._Gates,_Sr.'},
+ 'dbo:personFunction': 'dbpedia:Bill_Gates__1',
+ 'dbo:residence': 'dbpedia:Medina,_Washington',
+ 'dbo:spouse': 'dbpedia:Melinda_Gates',
+ 'rdfs:label': {'Bill Gates _(@de)',
+                'Bill Gates _(@en)',
+                'Bill Gates _(@es)',
+                'Bill Gates _(@fr)',
+                'Bill Gates _(@it)',
+                'Bill Gates _(@nl)',
+                'Bill Gates _(@pl)',
+                'Bill Gates _(@pt)',
+                'Гейтс, Билл _(@ru)',
+                'بيل غيتس _(@ar)',
+                'ビル・ゲイツ _(@ja)',
+                '比尔·盖茨 _(@zh)'},
 [...]
 }
 
 Searching for specific information
+************************************
 
->>> person.get_attributes_with_keyword('title')
+>>> person.get_attributes_with_keyword('[Yy]ears?')
 {
-    dbo:title: ([ "Technology AdvisorofMicrosoft","Chairmanof theTerraPower","Co-Chairmanof theBill & Melinda Gates Foundation","CEOofCascade Investment","ChairmanofCorbis" ]),
-    dbpprop:title: ([ "Chairman of Microsoft","Chief Executive Officer of Microsoft","dbpedia:List_of_billionaires" ])
+ 'dbo:activeYearsStartYear': '1975',
+ 'dbo:birthYear': '1955',
+ 'dbp:years': {'2009', '2014', '1975', '1996'}
+ }
+
+
+To quickly find the entity's labels by languages, use the class variable `labels_by_languages`:
+
+>>> person.labels_by_languages
+{
+ 'de': ['Bill Gates'],
+ 'en': ['Bill Gates', 'Bill Gates', 'Bill', 'Gates', 'William Henry Gates III'],
+ 'es': ['Bill Gates'],
+ 'fr': ['Bill Gates'],
+ 'it': ['Bill Gates'],
+ 'ja': ['ビル・ゲイツ'],
+ 'nl': ['Bill Gates'],
+ 'pl': ['Bill Gates'],
+ 'pt': ['Bill Gates'],
+ 'ru': ['Гейтс, Билл'],
+ 'zh': ['比尔·盖茨']}
 }
 
-There are some functions to query class-specific information. For instance for NE of type ``Person``, you can use::
+Searching for class-specific specific information
+**************************************************
+
+There exists some functions to query class-specific information. For instance for NE of type ``Person``, you can use::
 
     person.get_gender()
     person.get_names()
@@ -81,11 +117,16 @@ There are some functions to query class-specific information. For instance for N
     person.get_death_info()
 
 
+Finding more about the Named Entity
+************************************
+
 Sometimes, the first result set is not enough to find all the relevant information
 about a named entity. There is a function which try to fetch all that can be found:
 
 >>> person.find_more_about()
 
+This function launches another query on the same endpoints using the URIs that are labeled `owl:SameAs` in the first
+result set.
 The additional results are stored at the same place, in ``person.attributes``.
 
 
@@ -104,14 +145,15 @@ Name                  Inherits
 ====================  ============  ========
 :doc:`Thing`                        **Done**
 :doc:`Person`         Thing         **Done**
-Book                  Thing         *WIP*
+Creative Work         Thing         *WIP*
+Book                  Thing         TODO
 Location              Thing         TODO
 TemporalInformation   Thing         TODO
 ====================  ============  ========
 
-.. warning:: As you can see, this module is still under developpement. I plan to develop
+.. warning:: As you can see, this module is still under development. I plan to develop
              more functionalities (language handling, endpoints,...),
-             NE types (Books, Locations, TimePeriods, Chemicals,...)
+             NE types (Creative Work, Locations, TimePeriods, Chemicals,...)
              and fix some minor bugs ASAP.
              You are very welcome to contribute to the project on `GitHub <https://github.com/Valerie-Hanoka/PyNeQL>`_.
 
@@ -135,12 +177,6 @@ Endpoints
 ^^^^^^^^^^
 
 At the moment, only a small number of endpoints are supported. See section :doc:`Endpoints`.
-
-
-Restraining the queries
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-TODO
 
 
 Indices and tables

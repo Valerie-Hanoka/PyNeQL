@@ -70,13 +70,13 @@ def test_genericsparqlquery_base_case():
 
     truth_results = [
         [
-            (u'person', u'http://dbpedia.org/resource/Simone_de_Beauvoir'),
-            (u'birthdate', u'1908-01-09'),
-            (u'gender', u'female')],
+            ('person', 'http://dbpedia.org/resource/Simone_de_Beauvoir'),
+            ('birthdate', '1908-01-09'),
+            ('gender', 'female _(@en)')],
         [
-            (u'person', u'http://dbpedia.org/resource/Simone_de_Beauvoir'),
-            (u'birthdate', u'1908-1-9'),
-            (u'gender', u'female')
+            ('person', 'http://dbpedia.org/resource/Simone_de_Beauvoir'),
+            ('birthdate', '1908-1-9'),
+            ('gender', 'female _(@en)')
         ]
     ]
 

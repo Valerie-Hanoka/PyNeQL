@@ -7,6 +7,8 @@ Author: Valérie Hanoka
 """
 
 import logging
+from past.builtins import basestring
+
 from pyneql.log.loggingsetup import (
     setup_logging,
 )
@@ -28,7 +30,8 @@ from pyneql.utils.namespace import (
 )
 from pyneql.utils.utils import (
     QueryException,
-    merge_two_dicts_in_sets
+    merge_two_dicts_in_sets,
+    parse_literal_with_language
 )
 
 from pyneql.utils.utils import (
@@ -38,6 +41,7 @@ from pyneql.utils.utils import (
 
 from functools import reduce
 from itertools import chain
+import re
 
 class Thing(object):
     """
@@ -45,6 +49,9 @@ class Thing(object):
     """
 
     setup_logging()
+
+    # The regular expression matchin labels in the attribute dict.
+    RE_LABEL = re.compile('[Ll]abel|[Nn]ame')
 
     # Query
     query_builder = None
@@ -57,7 +64,7 @@ class Thing(object):
     # Implementation convention
     # Elements which will be used to construct the query
     # for something more specific than a Thing
-    # bust begin with "has_".
+    # must begin with "has_".
     has_label = None
     has_url = None
 
@@ -71,13 +78,13 @@ class Thing(object):
             class_name=u'Thing'
             ):
         """
-
         :param query_language: The language of the query
         :param label: The label which should be queried
         :param url: The URL/URI of the Semantic Web object we wish to query
         :param endpoints: The endoints where the query should be send
         :param limit: The limit puts an upper bound on the number of solutions returned by the query that will be stored.
         :param class_name: The name of the current class
+
         """
 
         if not isinstance(query_language, Lang):
@@ -106,6 +113,9 @@ class Thing(object):
         # Initializing results set
         self.attributes = {}
 
+        # Initializing literals by languages
+        self.labels_by_languages = {}
+
 
     # --------------------------------------- #
     #           QUERIES PREPARATION
@@ -117,8 +127,10 @@ class Thing(object):
         """This function allows to add a list of endpoints to which the Thing queries will be sent.
 
         :param endpoints: A list of endpoints we wish to query for the construction of the current Thing.
+
         """
-        map(self.add_query_endpoint, endpoints)
+        for endpoint in endpoints:
+            self.add_query_endpoint(endpoint)
 
     def add_query_endpoint(self, endpoint):
         """
@@ -127,7 +139,9 @@ class Thing(object):
         This function allows to add a single endpoint for the query.
 
         :param endpoint: An endpoint we wish to query for the construction of the current Thing.
+
         """
+
         self.endpoints.add(endpoint)
 
     # --- Queries preparation --- #
@@ -169,6 +183,7 @@ class Thing(object):
         So in strict_mode, the query will be constrained to:
         
         ``[…]{ ?Thing rdfs:label "አዲስ አበባ"  } UNION { ?Thing wdt:P1813 "አዲስ አበባ"  }.[…]``
+
         """
 
         self.query_builder.reset_queries()
@@ -193,7 +208,9 @@ class Thing(object):
          we can unambiguously query it/them.
         The URL(s) becomes the subject(s) of our RDF triple.
         """
+
         if is_listlike(self.has_url):
+
             # We have a list/set/tuple of URLs: the RDF triple will be:
             # `{ <URL1> ?pred ?obj  } UNION { <URL2> ?pred ?obj  } .`
             to_unite = set([])
@@ -207,7 +224,7 @@ class Thing(object):
                     )
                 )
             
-                self.query_builder.add_query_alternative_triples(to_unite)
+            self.query_builder.add_query_alternative_triples(to_unite)
 
         else:
             # We have a simple URL: the RDF triple will be:
@@ -454,7 +471,7 @@ class Thing(object):
         self._build_query(strict_mode=strict_mode, check_type=check_type)
         self.query_builder.add_endpoints(self.endpoints)
         self.query_builder.commit()
-        self._process_results(check_type) # TODO: set another check_type
+        self._process_results(check_type)  # TODO: set another check_type
 
     # --- Queries processing: organising results --- #
 
@@ -464,7 +481,10 @@ class Thing(object):
         :param check_type: Boolean. Check the type of the object (e.g: Book, Person, Location,…)
         in the SPARQL queries results. All the results which does not have the proper type are excluded.
         If True, the restriction of the object's type is done in the query.
-        For instance, if the object is a Book, activating type checking will build queries where the object
+
+        :Example:
+
+        If the object is a Book, activating type checking will build queries where the object
         to find (?Book) is constrained by an union of RDF triples checking that ?Book is a Book:
         "[…] { ?Book a fabio:Book  } UNION […] UNION { ?Book a schemaorg:Book  } .
         """
@@ -486,7 +506,8 @@ class Thing(object):
         for unfiltered_wikimedia_thing in unfiltered_wikimedia_things:
             things[unfiltered_wikimedia_thing][u'validated'] = 1
 
-        for thing, thing_attribute in things.items():
+        things_items = list(things.items())
+        for thing, thing_attribute in things_items:
             # Removing wrong things and adding the attributes of the correct thing
             if check_type and not thing_attribute.get(u'validated', False):
                 things.pop(thing)
@@ -499,6 +520,10 @@ class Thing(object):
                      })
 
                 self.attributes = merge_two_dicts_in_sets(self.attributes, thing_attribute)
+
+        # Fetching all the literals and organizing them by language
+        self._organise_labels_by_language()
+
 
     def _process_subject_url_results(self, pred, obj):
         """Return a dictionary of results for a query containing an URL as the subject of a triple."""
@@ -520,8 +545,12 @@ class Thing(object):
     def _process_any_results(self, subj, pred, obj, check_type=True):
         """ Return a dictionary of results for standard types of queries.
         TODO: Document better that part."""
+
+        # The dict 'thing' will keep track of all the semantic web objects
+        # that are returned by the query
         things = {}
 
+        # We need to check only the object's instantiated "has_..." values
         values_to_check = {}
         for element, value in self.__dict__.items():
             if element.startswith('has_') and self.__dict__.get(element, None):
@@ -531,17 +560,14 @@ class Thing(object):
                 else:
                     values_to_check[value] = element
 
-        # We need to check the type of the responses
+        # If check_type is set to True, we need to check the type of the responses
         for result in self.query_builder.results:
             dict_results = {arg_name: get_shortened_uri(arg_value) for (arg_name, arg_value) in result}
             thing = dict_results.pop(subj, None)
 
-            # Checking that it is the thing we are looking for
-            if check_type and dict_results[obj] in values_to_check:
-                value = dict_results[obj]
-                properties = self.voc_attributes.get(values_to_check[value], False)
-                if properties and dict_results[pred] in properties:
-                    things[thing] = {u'validated': 1}
+            # Checking that the result is of the right type
+            if check_type and dict_results[obj] in self.rdf_types:
+                things[thing] = {u'validated': 1}
 
             shortened_result = {dict_results[pred]: dict_results[obj]}
             things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
@@ -589,9 +615,32 @@ class Thing(object):
         return [url for url in urls if url]
 
     def get_attributes_with_keyword(self, keyword):
-        """ For debuging purposes """
-        #TODO: Regexp search
-        return {k: v for k, v in self.attributes.items() if keyword in k}
+        """ Returns the attributes whose predicates contains a keyword.
+
+        :Example:
+
+        >>> my_thing.get_attributes_with_keyword('rdfs:')
+        will return all the attributes whose values' keys contains rdfs:
+        rdfs:label, rdf:type, subClassOf, rdfs:seeAlso ...
+        """
+
+        return {k: v for k, v in self.attributes.items() if re.search(keyword, k)}
+
+    def _organise_labels_by_language(self):
+        """
+        Get all the labels in the results and populates self.literals_by_language
+        with them.
+        :return: None
+        """
+        for labels_with_languages in self.get_attributes_with_keyword(self.RE_LABEL).values():
+            if isinstance(labels_with_languages, basestring):
+                labels_with_languages = [labels_with_languages]
+            for label_with_language in labels_with_languages:
+                label, language = parse_literal_with_language(label_with_language)
+                if language:
+                    stored_labels = self.labels_by_languages.get(language, [])
+                    stored_labels.append(label)
+                    self.labels_by_languages[language] = stored_labels
 
     def get_external_ids(self):
         """

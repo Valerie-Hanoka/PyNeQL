@@ -20,6 +20,7 @@ class Endpoint(Enum):
     bnf = u'http://data.bnf.fr/sparql'
 
     # Lexical info
+    # wordnel =
     # babelnet = u'http://babelnet.org/sparql/'
 
     # Default Endpoint
