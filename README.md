@@ -4,7 +4,7 @@
 A module for searching Named Entity on SPARQL endpoints
 ===========================================================
 
-[![Python version](https://img.shields.io/badge/python-2.7-ff69b4.svg)](https://img.shields.io/badge/python-2.7-ff69b4.svg)
+[![Python version](https://img.shields.io/badge/python-2.7%2C%203.6-ff69b4.svg)](https://img.shields.io/badge/python-2.7%2C%203.6-ff69b4.svg)
 [![Build Status](https://travis-ci.org/Valerie-Hanoka/PyNeQL.svg?branch=master)](https://travis-ci.org/Valerie-Hanoka/PyNeQL)
 [![Coverage Status](https://coveralls.io/repos/github/Valerie-Hanoka/PyNeQL/badge.svg?branch=master)](https://coveralls.io/github/Valerie-Hanoka/PyNeQL?branch=master)
 [![Documentation Status](https://readthedocs.org/projects/pyneql/badge/?version=latest)](http://pyneql.readthedocs.io/en/latest/?badge=latest)               
