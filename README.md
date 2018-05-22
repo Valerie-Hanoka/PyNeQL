@@ -42,12 +42,12 @@ Table of Contents
 ### Installation instructions
 <div id='installation-instructions'/>
 
+Just type the pip command in your env:
 
-**Nota bene: For the moment, this module is still under development. 
-You do not want to use this in production.**
+    pip install pyneql
 
 
-You can install PyNeQL by cloning the project to your local directory
+Or you can install PyNeQL by cloning the project to your local directory
 
     git clone https://github.com/Valerie-Hanoka/PyNeQL.git
 
