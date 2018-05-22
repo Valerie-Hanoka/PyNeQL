@@ -30,6 +30,9 @@ from pyneql.ontology.book import Book
 from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 
+from pyneql.ontology.thing import Thing
+from pyneql.utils.endpoints import Endpoint
+from pyneql.utils.enum import LanguagesIso6391 as Lang
 
 # Creating the person using its first and last names.
 # Default language is English.

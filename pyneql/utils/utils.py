@@ -6,13 +6,16 @@ Author: Valérie Hanoka
 
 """
 
-from past.builtins import basestring
 import six
 from copy import deepcopy
 from unicodedata import normalize
-
-
 import re
+
+try:
+    basestring
+except NameError:
+    basestring = str
+
 
 # ----  Exceptions ---- #
 class QueryException(Exception):

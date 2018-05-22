@@ -7,7 +7,7 @@ Author: Valérie Hanoka
 """
 
 import logging
-from past.builtins import basestring
+
 
 from pyneql.log.loggingsetup import (
     setup_logging,
@@ -42,6 +42,11 @@ from pyneql.utils.utils import (
 from functools import reduce
 from itertools import chain
 import re
+
+try:
+    basestring
+except NameError:
+    basestring = str
 
 class Thing(object):
     """
@@ -578,9 +583,13 @@ class Thing(object):
     #      Playing with the object
     # --------------------------------------- #
 
-    def find_more_about(self, seen=set([])):
-        """Deepens the search
-        TODO: document"""
+    def find_more_about(self):
+        """Deepens the search"""
+        self._recursively_find_more_about(set([]))
+        self._organise_labels_by_language()
+
+    def _recursively_find_more_about(self, seen=set([])):
+        """TODO: document"""
 
         same_entities_keys = [u'skos:exactMatch', u'owl:sameAs']
 
@@ -605,7 +614,7 @@ class Thing(object):
             same_entity.add_query_endpoints(self.endpoints)
             same_entity.query()
             self.attributes = merge_two_dicts_in_sets(self.attributes, same_entity.attributes)
-        self.find_more_about(seen)
+        self._recursively_find_more_about(seen)
 
     def get_uris(self):
         """ Gets the URIs of the current object. """
@@ -637,6 +646,7 @@ class Thing(object):
                 labels_with_languages = [labels_with_languages]
             for label_with_language in labels_with_languages:
                 label, language = parse_literal_with_language(label_with_language)
+                language = language if language else self.query_language.value
                 if language:
                     stored_labels = self.labels_by_languages.get(language, [])
                     stored_labels.append(label)
