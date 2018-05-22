@@ -58,10 +58,11 @@ class RDFTriple(object):
         self.id = RDFTriple.class_counter
         RDFTriple.class_counter += 1
 
-        self.prefixes = []
         self.subject = u"?s_%i" % RDFTriple.class_counter
         self.predicate = u"?p_%i" % RDFTriple.class_counter
         self.object = u"?o_%i" % RDFTriple.class_counter
+
+        self.prefixes = []
         prefixes = prefixes or []
         self.add_prefixes(prefixes)
 
@@ -83,6 +84,26 @@ class RDFTriple(object):
             self.object = self._extract_prefix_from_rdf_element(object)
 
         logging.debug("Created triple %s" % highlight_str(self.__str__(), highlight_type='triple'))
+
+    def __hash__(self):
+        return hash(self.__repr__())
+
+    def __repr__(self):
+        return self.__str__()
+
+    def __eq__(self, other):
+        if isinstance(other, RDFTriple):
+            return (
+                    (self.subject == other.subject) and
+                    (self.predicate == other.predicate) and
+                    (self.object == other.object)
+            )
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
 
     def manage_endpoints_information(self, excluded_endpoints, keep_only_endpoints):
         """ A triplet can be used to generate many SPARQL queries which
@@ -156,6 +177,7 @@ class RDFTriple(object):
         :param element: One of the 3 element of an RDF triple (subject, object or predicate).
         :return: Normalized string of an rdf triple element if it is a string
         """
+
         # Case 1 - The element is an integer, and should remain so
         if isinstance(element, int):
             return element
@@ -209,7 +231,8 @@ class RDFTriple(object):
 
     def add_prefixes(self, prefixes):
         """ Add every prefix in the prefixes iterable"""
-        map(self.add_prefix, prefixes)
+        for prefix in prefixes:
+            self.add_prefix(prefix)
 
     def add_prefix(self, prefix):
         """ A prefix can be added if it is of the type vocabulary.NameSpace or

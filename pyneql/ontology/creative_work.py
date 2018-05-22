@@ -46,10 +46,6 @@ class CreativeWork(Thing):
                  class_name=u'CreativeWork'
                  ):
 
-        #if not (url or ((author or date) and title)):
-        #    raise QueryException("There is not enough information provided to find this piece of work."
-        #                         " Provide more information.")
-
         # The author may be a Person or an Organization
         if author:
             if isinstance(author, Person) or isinstance(author, Thing):     # TODO: Implement organisation

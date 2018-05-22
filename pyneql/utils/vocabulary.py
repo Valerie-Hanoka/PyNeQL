@@ -18,8 +18,10 @@ rdf_types = {
         u"owl:Thing",
         u"wd:Q35120",                          # Wikidata for entity.
         u"schema:Thing",
+        u"schemaorg:Thing",
         u"schema:Class",
-        u"wdt_o:Item"
+        u"schemaorg:Class",
+        u"wdt_o:Item",
     },
     # PERSON
     u'Person': {
@@ -27,14 +29,16 @@ rdf_types = {
         u"dbpedia_owl:Person",
         u"wd:Q5",                              # Wikidata for a human being.
         u"dul:NaturalPerson",
-        u"schema:Person"
+        u"schema:Person",
+        u"schemaorg:Person",
     },
 
     # CREATIVE WORK
     u'CreativeWork': {
         u"dbo:Creative_work",
         u"wd:Q17537576",
-        u"schema:CreativeWork"
+        u"schema:CreativeWork",
+        u"schemaorg:CreativeWork",
     },
 
     # BOOK
@@ -44,6 +48,7 @@ rdf_types = {
         u"schema:Book",
         u'schemaorg:Book',
         u"schema:Thesis",
+        u"schemaorg:Thesis",
         u"dbpedia_owl:Book",
         u'dbo:Book',
         u"dbpedia_owl:WrittenWork",            # Superclass
@@ -52,7 +57,7 @@ rdf_types = {
         u'frbr_rda:Work',
         u'frbr_rda:Manifestation',
         u'dbo:WrittenWork',
-        u'foaf:Document'
+        u'foaf:Document',
     }
 }
 
@@ -78,6 +83,7 @@ attributes = {
             u'dbpprop:givenname',
             u'wdt:P735',                                # given name
             u'schemaorg:givenName',
+            u'schema:givenName',
             u'vcard2006:given-name',
         ],
         u'has_last_name': [
@@ -89,6 +95,7 @@ attributes = {
             u'wdt:P734',                               # family name
             u'wdt:P1950',                              # second family name in Spanish
             u'schema:familyName',
+            u'schemaorg:familyName',
             u'vcard2006:family-name',
         ],
         u'has_full_name': [
@@ -101,7 +108,7 @@ attributes = {
             u'wdt:P2561',
             u'wdt:P1559',
             u'dbo:birthName',
-            u'rdfs:label'
+            u'rdfs:label',
         ],
         u'has_alternative_names': [
             u'dbpprop:altname',
@@ -114,21 +121,23 @@ attributes = {
             u'dbpprop:othername',
             u'dbpprop:othernames',
             u'foaf:nick',
-            u'skos:altLabel'
+            u'skos:altLabel',
         ],
         u'has_death_date': [
             u'wdt:P570',                                # date of death
             u'wdt:P746',                                # date of disappearance
             u'schema:deathDate',
+            u'schemaorg:deathDate',
             u'bnf_onto:lastYear',
-            u'bio:death'
+            u'bio:death',
         ],
         u'has_birth_date': [
             u'wdt:P569',
             u'schema:birthDate',
+            u'schemaorg:birthDate',
             u'vcard2006:bday',
             u'bnf_onto:firstYear',
-            u'bio:birth'
+            u'bio:birth',
         ],
     },
 
@@ -143,26 +152,37 @@ attributes = {
             u'schema:author',
             u'schema:creator',
             u'schema:accountablePerson',  # ?
+            u'schemaorg:author',
+            u'schemaorg:creator',
+            u'schemaorg:accountablePerson',  # ?
             u'dcterms:creator',
             u'dc:creator'
             u'dbo:author',
-            u'bnfroles:r70'
+            u'bnfroles:r70',
         ],
         u'has_title': [
             u'schema:alternativeHeadline',
+            u'schemaorg:alternativeHeadline',
             u'schema:alternateName',
+            u'schemaorg:alternateName',
             u'schema:name',
+            u'schemaorg:name',
             u'dcterms:title',
             u'schema:headline',
-            u'foaf:name'        # weird but needed...
+            u'schemaorg:headline',
+            u'foaf:name',        # weird but needed...
         ],
         u'has_date': [
             u'schema:datePublished',
+            u'schemaorg:datePublished',
             u'schema:dateCreated',
+            u'schemaorg:dateCreated',
             u'schema:dateModified',
+            u'schemaorg:dateModified',
             u'schema:copyrightYear'
+            u'schemaorg:copyrightYear'
             u'bnf_onto:firstYear',
-            u'wdt:P577'
+            u'wdt:P577',
         ],
     },
 
@@ -170,14 +190,16 @@ attributes = {
     u'Book': {
         u'has_isbn': [
             u'schema:isbn',
+            u'schemaorg:isbn',
         ],
         u'has_publisher': [
             u'schema:publisher',
+            u'schemaorg:publisher',
             u'dcterms:publisher',
-            u'rdagroup1elements:publishersName'
+            u'rdagroup1elements:publishersName',
         ],
         u'has_gallica_url': [
-            u'http://rdvocab.info/RDARelationshipsWEMI/electronicReproduction'
+            u'http://rdvocab.info/RDARelationshipsWEMI/electronicReproduction',
         ]
     },
 }

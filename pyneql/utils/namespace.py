@@ -11,7 +11,7 @@ from pyneql.log.loggingsetup import (
     setup_logging,
 )
 
-from utils import NameSpaceException
+from pyneql.utils.utils import NameSpaceException
 
 from aenum import Enum, extend_enum
 import re
@@ -29,6 +29,8 @@ class NameSpace(Enum):
     Common SPARQL prefixes.
     See also https://prefix.cc/
     """
+    akt = u'http://www.aktors.org/ontology/portal#'
+    akts = u'http://www.aktors.org/ontology/support #'
     bd = u'http://www.bigdata.com/rdf#'
     bds = u'http://www.bigdata.com/rdf/search#'
     bibo = u'http://purl.org/ontology/bibo/'
@@ -38,11 +40,9 @@ class NameSpace(Enum):
     category = u'http://dbpedia.org/resource/Category:'
     category_fr = u'http://fr.dbpedia.org/resource/Catégorie:'
     dawgt = u'http://www.w3.org/2001/sw/DataAccess/tests/test-dawg#'
-    dbo = u'http://dbpedia.org/ontology/'
-    dct = u'http://purl.org/dc/terms/'
-    dbp = u'http://dbpedia.org/property/'
-    dbr = u'http://dbpedia.org/resource/'
     dbc = u'http://dbpedia.org/resource/Category:'
+    dbo = u'http://dbpedia.org/ontology/'
+    dbp = u'http://dbpedia.org/property/'
     dbpedia = u'http://dbpedia.org/resource/'
     dbpedia_cs = u'http://cs.dbpedia.org/resource/'
     dbpedia_de = u'http://de.dbpedia.org/resource/'
@@ -58,15 +58,17 @@ class NameSpace(Enum):
     dbpedia_pt = u'http://pt.dbpedia.org/resource/'
     dbpedia_ru = u'http://ru.dbpedia.org/resource/'
     dbpprop = u'http://dbpedia.org/property/'
+    dbr = u'http://dbpedia.org/resource/'
     dc = u'http://purl.org/dc/elements/1.1/'
     dcmi_box = u'http://dublincore.org/documents/dcmi-box/'
     dcmitype = u'http://purl.org/dc/dcmitype/'
+    dct = u'http://purl.org/dc/terms/'
     dcterms = u'http://purl.org/dc/terms/'
     dul = u'http://www.ontologydesignpatterns.org/ont/dul/DUL.owl#'
+    fabio = u'http://purl.org/spar/fabio/'
     fn = u'http://www.w3.org/2005/xpath-functions/#'
     foaf = u'http://xmlns.com/foaf/0.1/'
     frbr_rda = u'http://rdvocab.info/uri/schema/FRBRentitiesRDA/'
-    fabio = u'http://purl.org/spar/fabio/'
     freebase = u'http://rdf.freebase.com/ns/'
     gas = u'http://www.bigdata.com/rdf/gas#'
     genremus = u'http://data.bnf.fr/vocabulary/musical-genre/'
@@ -75,6 +77,7 @@ class NameSpace(Enum):
     georss = u'http://www.georss.org/georss/'
     go = u'http://purl.org/obo/owl/GO#'
     hint = u'http://www.bigdata.com/queryHints#'
+    id = u'http://wordnet.rkbexplorer.com/id/'
     ign = u'http://data.ign.fr/ontology/topo.owl#'
     insee = u'http://rdf.insee.fr/geo/'
     isni = u'http://isni.org/ontology#'
@@ -134,7 +137,6 @@ class NameSpace(Enum):
     virtrdf = u'http://www.openlinksw.com/schemas/virtrdf#'
     void = u'http://rdfs.org/ns/void#'
     wd = u'http://www.wikidata.org/entity/'
-    wikidata = u'http://www.wikidata.org/entity/'
     wdata = u'http://www.wikidata.org/wiki/Special:EntityData/'
     wdno = u'http://www.wikidata.org/prop/novalue/'
     wdref = u'http://www.wikidata.org/reference/'
@@ -145,6 +147,7 @@ class NameSpace(Enum):
     wiki_fr = u'http://fr.wikipedia.org/wiki/'
     wikibase = u'http://wikiba.se/ontology#'
     wikicompany = u'http://dbpedia.openlinksw.com/wikicompany/'
+    wikidata = u'http://www.wikidata.org/entity/'
     xf = u'http://www.w3.org/2004/07/xpath-functions'
     xml = u'http://www.w3.org/XML/1998/namespace'
     xsd = u'http://www.w3.org/2001/XMLSchema#'
@@ -153,6 +156,7 @@ class NameSpace(Enum):
     xslwd = u'http://www.w3.org/TR/WD-xsl'
     yago = u'http://dbpedia.org/class/yago/'
     yago_res = u'http://mpii.de/yago/resource/'
+
 
 
 # def get_uri_last_part(uri):

@@ -7,7 +7,7 @@ Author: Valérie Hanoka
 
 # Debug:
 
-from pyneql.ontology.book import Book
+from pyneql.ontology.thing import Thing
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 from pyneql.utils.endpoints import Endpoint
 import dataset
@@ -25,25 +25,51 @@ from pyneql.ontology.person import Person
 from pyneql.utils.utils import pretty_print_utf8
 
 from pyneql.ontology.person import Person
+from pyneql.ontology.creative_work import CreativeWork
+from pyneql.ontology.book import Book
 from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 
-person = Person(
-    first_name="Bill",
-    last_name="Gates",
-    endpoints=[Endpoint.wikidata, Endpoint.dbpedia])
+from pyneql.ontology.thing import Thing
+from pyneql.utils.endpoints import Endpoint
+from pyneql.utils.enum import LanguagesIso6391 as Lang
 
-person.query()
+# Creating the person using its first and last names.
+# Default language is English.
+bell_hooks = Person(first_name="bell", last_name="hooks")
 
-# Accessing the raw results
+# In order to query the new person in the Semantic Web, we should
+# add at least one endpoint. Here, we add them all:
+endpoints = [e for e in Endpoint]
+bell_hooks.add_query_endpoints(endpoints)
 
+# Sending the query
+bell_hooks.query()
 
-# Getting all the person's known names
-person.get_names()
+ipdb.set_trace()
 
-# What is he doing ?
-person.get_attributes_with_keyword('title')
+lemmas = ["chair", "law", "right", "beaver"]
+things = []
+for lemma in lemmas:
+    thing = Thing(
+        label=lemma,
+        limit=100,
+        endpoints=[Endpoint.wikidata, Endpoint.dbpedia, Endpoint.dbpedia_fr],
+        query_language=Lang.English
+    )
 
+    thing.query(check_type=False, strict_mode=False)
+    thing.find_more_about()
+    things.append(thing)
+
+book = Book(
+    author='Virginia Woolf',
+    title="A Room of One's Own",
+    endpoints=[e for e in Endpoint])
+book.query()
+
+#for e in Endpoint:
+#    assert fuzz.token_sort_ratio(expected_queries[e], thing.query_builder.queries[e]) == 100
 
 ipdb.set_trace()
 
@@ -59,7 +85,6 @@ db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db'
 def books(db, endpoints):
     book_table = db['identifier']
     for row in book_table:
-        print "_____________________________"
         print(row)
         if row.get('type') == u'url' and row.get('idno'):
             book =  Book(gallica_url=row.get('idno'))
@@ -108,9 +133,4 @@ def persons(db, endpoints):
             import ipdb; ipdb.set_trace()
             people[fingerprint]['old_fingerprint'] = row.get('fingerprint')
     import ipdb; ipdb.set_trace()
-
-
-
-
-
 

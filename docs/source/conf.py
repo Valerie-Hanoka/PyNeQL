@@ -45,7 +45,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'PyNEQL'
+project = u'PyNeQL'
 copyright = u'2018, Valérie Hanoka, Labex OBVIL'
 author = u'Valérie Hanoka'
 

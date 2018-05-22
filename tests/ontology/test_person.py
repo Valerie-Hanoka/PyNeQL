@@ -32,7 +32,7 @@ def test_person_dbpedia_query_strict_True():
     person.add_query_endpoint(Endpoint.dbpedia)
     person.query(strict_mode=True)
 
-    assert "Victor Marie Hugo" in person.get_attributes_with_keyword('dbo:birthName').values()
+    assert "Victor Marie Hugo _(@en)" in person.get_attributes_with_keyword('dbo:birthName').values()
 
 
 def test_person_dbpedia_query_strict_False():
@@ -41,7 +41,9 @@ def test_person_dbpedia_query_strict_False():
     person.add_query_endpoint(Endpoint.dbpedia)
     person.query(strict_mode=False)
 
-    assert reduce((lambda x, y: x or y), ['Q234279' in attr for attr in person.attributes.get(u'owl:sameAs')])
+    is_ok = False
+    for ok in ['Q234279' in attr for attr in person.attributes.get(u'owl:sameAs')]:
+        is_ok = is_ok or ok
 
 # Testing Endpoint: dbpedia_fr
 
@@ -70,9 +72,12 @@ def test_person_dbpedia_fr_query_strict_False():
     names = person.attributes.get(u'foaf:name')
     is_ok = False
     if isinstance(names, set):
-        is_ok = reduce((lambda x, y: x or y), [full_name in attr for attr in person.attributes.get(u'foaf:name')])
+        is_ok = False
+        for has_full_name in [full_name in attr for attr in person.attributes.get(u'foaf:name')]:
+            is_ok = is_ok or has_full_name
     else:
         is_ok = full_name in names
+
     assert is_ok
 
 
@@ -176,7 +181,7 @@ def test_person_get_names():
     person.add_query_endpoints([Endpoint.bnf, Endpoint.dbpedia_fr, Endpoint.dbpedia])
     person.query(strict_mode=True)
     names = person.get_names()
-    assert u'RuPaul Andre Charles' in names.get(u'dbo:birthName')
+    assert u'RuPaul Andre Charles _(@en)' in names.get(u'dbo:birthName')
 
 def test_person_get_external_ids():
     """Person - get_external_ids: Should pass """
