@@ -56,50 +56,6 @@ work3.query(strict_mode=False, check_type=True)
 
 print(work3.query_builder.queries.get(Endpoint.wikidata))
 
-#PREFIX schema: <http://schema.org/>
-#PREFIX dct: <http://purl.org/dc/terms/>
-#PREFIX foaf: <http://xmlns.com/foaf/0.1/>
-#SELECT DISTINCT ?CreativeWork ?pred ?obj WHERE {
-#  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],ja". }
-#  ?CreativeWork ?pred ?obj .
-#  { ?CreativeWork ?has_author <http://www.wikidata.org/entity/Q5586>  }
-#  UNION { ?CreativeWork ?has_author <http://rdf.freebase.com/ns/m.0bwf4>  }
-#  UNION { ?CreativeWork ?has_author <http://dbpedia.org/resource/Hokusai>  }
-#  UNION { ?CreativeWork ?has_author <http://ja.dbpedia.org/resource/葛飾北斎>  } .
-#  { ?CreativeWork schema:alternativeHeadline "凱風快晴"@ja  }
-#  UNION { ?CreativeWork foaf:name "凱風快晴"@ja  }
-#  UNION { ?CreativeWork schema:alternateName "凱風快晴"@ja  }
-#  UNION { ?CreativeWork dct:title "凱風快晴"@ja  }
-#  UNION { ?CreativeWork schema:name "凱風快晴"@ja  } .
-#} LIMIT 1500
-
-
-#SELECT DISTINCT ?CreativeWork ?pred ?obj WHERE
-#{ SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],ja". }
-# ?CreativeWork ?has_title "凱風快晴"@ja .
-# ?CreativeWork ?pred ?obj .
-# { ?CreativeWork ?has_author <http://ja.dbpedia.org/resource/葛飾北斎>  }
-# UNION { ?CreativeWork ?has_author <http://dbpedia.org/resource/Hokusai>  }
-# UNION { ?CreativeWork ?has_author <http://www.wikidata.org/entity/Q5586>  }
-# UNION { ?CreativeWork ?has_author <http://rdf.freebase.com/ns/m.0bwf4>  } .
-#} LIMIT 1500
-
-#PREFIX wd: <http://www.wikidata.org/entity/>
-#PREFIX schema: <http://schema.org/>
-#PREFIX dbo: <http://dbpedia.org/ontology/>
-#SELECT DISTINCT ?CreativeWork ?pred ?obj WHERE {
-#  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],ja". }
-#  ?CreativeWork ?has_title "凱風快晴"@ja .
-#  ?CreativeWork ?pred ?obj .
-#  { ?CreativeWork a schema:CreativeWork  } UNION
-#  { ?CreativeWork wdt:P31 wd:Q17537576  } UNION
-#  { ?CreativeWork a dbo:Creative_work  } .
-#  { ?CreativeWork ?has_author <http://dbpedia.org/resource/Hokusai>  } UNION
-#  { ?CreativeWork ?has_author <http://www.wikidata.org/entity/Q5586>  } UNION
-#  { ?CreativeWork ?has_author <http://ja.dbpedia.org/resource/葛飾北斎>  } UNION
-#  { ?CreativeWork ?has_author <http://rdf.freebase.com/ns/m.0bwf4>  } .
-#} LIMIT 1500
-
 
 exit(0)
 ipdb.set_trace()
