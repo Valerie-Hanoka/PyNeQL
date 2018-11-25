@@ -14,12 +14,14 @@ from pyneql.log.loggingsetup import (
 )
 
 from pyneql.utils.enum import (
-    LanguagesIso6391 as Lang,
+    LanguagesIso6391 as Lang
 )
 
 from pyneql.utils.utils import (
-    QueryException,
+    QueryException
 )
+
+from pyneql.utils.endpoints import Endpoint
 
 class CreativeWork(Thing):
     """
@@ -77,10 +79,11 @@ class CreativeWork(Thing):
         :return:
         """
 
-        author = Person(full_name=author, query_language=query_language)
+        author = Person(full_name=author, query_language=query_language, endpoints=[e for e in Endpoint])
         author.query(strict_mode=strict_mode, check_type=check_type)
+
         if not author.attributes:
-            raise QueryException("The author could be found on the Semantic Web.")
+            raise QueryException("The author could not be found on the Semantic Web.")
         return author.get_uris()
 
     def find_author_organisation(self, author, query_language, strict_mode=True, check_type=True):
@@ -91,7 +94,7 @@ class CreativeWork(Thing):
         """
         # raise NotImplementedError("The Class 'Organisation' is not implemented yet !")
 
-        author = Thing(label=author, query_language=query_language)
+        author = Thing(label=author, query_language=query_language, endpoints=[e for e in Endpoint])
         author.query(strict_mode=strict_mode, check_type=check_type)
         if not author.attributes:
             raise QueryException("The authoring organisation could be found on the Semantic Web.")

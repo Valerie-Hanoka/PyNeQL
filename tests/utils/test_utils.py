@@ -85,10 +85,6 @@ def test_utils_merge_two_dicts_in_sets2():
         'only_x': 'only_x',
         'only_y': 'only_y'
     }
-
-    import pprint
-    pprint.pprint(merged)
-
     assert merged == truth
 
 
