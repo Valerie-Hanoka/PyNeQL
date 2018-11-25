@@ -10,7 +10,7 @@ Author: Valérie Hanoka
 from pyneql.ontology.thing import Thing
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 from pyneql.utils.endpoints import Endpoint
-import dataset
+
 
 from pyneql.query.rdftriple import RDFTriple
 from pyneql.query.querybuilder import GenericSPARQLQuery
@@ -34,18 +34,30 @@ from pyneql.ontology.thing import Thing
 from pyneql.utils.endpoints import Endpoint
 from pyneql.utils.enum import LanguagesIso6391 as Lang
 
-# Creating the person using its first and last names.
-# Default language is English.
-bell_hooks = Person(first_name="bell", last_name="hooks")
+work1 = CreativeWork(
+        title="Une chambre à soi",
+        author="Virginia Woolf",
+        query_language=Lang.French,
+        endpoints=[Endpoint.bnf])
 
-# In order to query the new person in the Semantic Web, we should
-# add at least one endpoint. Here, we add them all:
-endpoints = [e for e in Endpoint]
-bell_hooks.add_query_endpoints(endpoints)
+work1.query(strict_mode=False, check_type=False)
+import pprint; pprint.pprint(work1.attributes)
+import ipdb; ipdb.set_trace()
 
-# Sending the query
-bell_hooks.query()
+exit()
 
+work3 = CreativeWork(
+    title=u"Vieilles Chansons du pays Imerina",
+    author=u"Rabearivelo",
+    endpoints=[Endpoint.wikidata],
+    query_language=Lang.French)
+
+work3.query(strict_mode=False, check_type=True)
+
+print(work3.query_builder.queries.get(Endpoint.wikidata))
+
+
+exit(0)
 ipdb.set_trace()
 
 lemmas = ["chair", "law", "right", "beaver"]
@@ -74,63 +86,6 @@ book.query()
 ipdb.set_trace()
 
 
-db = dataset.connect(u'sqlite:////Users/hanoka/obvil/TEIExplorer/useAndReuse.db')
 
 
-#persons(db, endpoints)
-#books(db, endpoints)
-
-
-
-def books(db, endpoints):
-    book_table = db['identifier']
-    for row in book_table:
-        print(row)
-        if row.get('type') == u'url' and row.get('idno'):
-            book =  Book(gallica_url=row.get('idno'))
-            book.add_query_endpoints(endpoints)
-            book.query(check_type=False)
-            book.find_more_about()
-            pprint.pprint(book.attributes)
-
-#books(db, endpoints)
-
-
-def persons(db, endpoints):
-    person_table = db['person']
-    people = {}
-    for row in person_table:
-        (first_name, last_name) = row.get('first_name_or_initials').strip(), row.get('last_name').strip()
-        full_name = u'%s %s' % (first_name, last_name)
-        try:
-            birth = int(row.get('birth', "None") or "None")
-        except ValueError:
-            birth = None
-        try:
-            death = int(row.get('death', "None")or "None")
-        except ValueError:
-            death = None
-
-        fingerprint = u"%s %s %s" % (
-            full_name.strip(),
-            birth,
-            death
-        )
-        print("%s  ---  %s" % (row.get('fingerprint'), fingerprint, ))
-        if first_name and last_name:
-            person = Person(
-                full_name=full_name.strip(),
-                query_language=Lang.French
-            )
-            person.add_query_endpoints(endpoints)
-
-            person.query()
-            if person.attributes:
-                people[fingerprint] = {'person': person}
-
-            else:
-                people[fingerprint] = {'person': None}
-            import ipdb; ipdb.set_trace()
-            people[fingerprint]['old_fingerprint'] = row.get('fingerprint')
-    import ipdb; ipdb.set_trace()
 

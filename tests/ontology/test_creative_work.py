@@ -24,6 +24,15 @@ def test_work_incomplete():
     """CreativeWork - Not enough arguments: Should fail"""
     CreativeWork(author="qkdsjfoziej")
 
+# Testing endpoint: bnf
+def test_work_bnf_query():
+    """CreativeWork - bnf : Should pass"""
+    work1 = CreativeWork(
+        title="Une chambre à soi",
+        author="Virginia Woolf",
+        endpoints=[Endpoint.bnf])
+
+    work1.query(strict_mode=False, check_type=False)
 
 # Testing Endpoint: dbpedia
 def test_work_dbpedia_query():
@@ -120,7 +129,39 @@ def test_work_wikidata_query_strict_True():
         query_language=Lang.Japanese)
 
     work.query(strict_mode=False, check_type=False)
+
+    work2 = CreativeWork(
+        title=u"凱風快晴",
+        author=u"葛飾北斎",
+        endpoints=[Endpoint.wikidata],
+        query_language=Lang.Japanese)
+
+    work2.query(strict_mode=True, check_type=False)
+
+
+    # Check_type=True does not work for this endpoint
+    # because the most specific type is always specified
+    # if the author is an URI.
+
+    #work3 = CreativeWork(
+    #    title=u"凱風快晴",
+    #    author=u"葛飾北斎",
+    #    endpoints=[Endpoint.wikidata],
+    #    query_language=Lang.Japanese)
+
+    #work3.query(strict_mode=False, check_type=True)
+    #work4 = CreativeWork(
+    #    title=u"凱風快晴",
+    #    author=u"葛飾北斎",
+    #    endpoints=[Endpoint.wikidata],
+    #    query_language=Lang.Japanese)
+    #
+    #work4.query(strict_mode=True, check_type=True)
+
     assert work.attributes
+    assert work2.attributes
+    #assert work3.attributes
+    #assert work4.attributes
 
 
 # With URL

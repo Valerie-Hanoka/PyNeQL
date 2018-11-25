@@ -70,9 +70,10 @@ rdf_types = {
 # TODO: Some prefixes have same vocabulary and are not recognized. Should expand doubles. E.g: wikidata = wdt
 
 attributes = {
+
     # THING
     u'Thing': {
-        u'has_label': [u'rdfs:label', u'wdt:P1813']
+        u'has_label': [u'rdfs:label', u'wdt:P1813'],
     },
 
     # PERSON
@@ -99,6 +100,7 @@ attributes = {
             u'vcard2006:family-name',
         ],
         u'has_full_name': [
+            u'rdfs:label',
             u'dbpprop:birthname',
             u'dbpprop:birthnames',
             u'dbpprop:fullname',
@@ -108,7 +110,6 @@ attributes = {
             u'wdt:P2561',
             u'wdt:P1559',
             u'dbo:birthName',
-            u'rdfs:label',
         ],
         u'has_alternative_names': [
             u'dbpprop:altname',
@@ -162,9 +163,11 @@ attributes = {
         ],
         u'has_title': [
             u'schema:alternativeHeadline',
+            u'rdfs:label',
             u'schemaorg:alternativeHeadline',
             u'schema:alternateName',
             u'schemaorg:alternateName',
+            u'wdt:P1476',
             u'schema:name',
             u'schemaorg:name',
             u'dcterms:title',

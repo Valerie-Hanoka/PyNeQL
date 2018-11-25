@@ -567,15 +567,23 @@ class Thing(object):
 
         # If check_type is set to True, we need to check the type of the responses
         for result in self.query_builder.results:
+
+            shortened_result = {}
             dict_results = {arg_name: get_shortened_uri(arg_value) for (arg_name, arg_value) in result}
             thing = dict_results.pop(subj, None)
 
             # Checking that the result is of the right type
-            if check_type and dict_results[obj] in self.rdf_types:
-                things[thing] = {u'validated': 1}
+            if check_type\
+                    and dict_results[pred] in ['wdt:P31', 'rdf:type', 'rdfs:subClassOf']\
+                    and dict_results[obj] in self.rdf_types:
+                shortened_result[u'validated'] = 1
 
-            shortened_result = {dict_results[pred]: dict_results[obj]}
-            things[thing] = merge_two_dicts_in_sets(things.get(thing, {}), shortened_result)
+            shortened_result[dict_results[pred]] = dict_results[obj]
+
+            things[thing] = merge_two_dicts_in_sets(
+                things.get(thing, {}),
+                shortened_result
+            )
 
         return things
 
